@@ -14,50 +14,98 @@ import (
 
 func BaseInit(config any) InitFunc {
 	return func() (err error) {
+		// db
 		val, ok := structValue(config, "Db")
+		if ok {
+			c, ok2 := val.(sdb.Config)
+			if ok2 {
+				slog.Info("Init DB.")
+				err = sdb.Init(c)
+				if err != nil {
+					return fmt.Errorf("init DB failed [%v]", err)
+				}
+			}
+		}
+		val, ok = structValue(config, "DbList")
 		if ok {
 			c, ok2 := val.([]sdb.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init DB.")
 				err = sdb.Init(c...)
 				if err != nil {
-					return fmt.Errorf("init DB error [%v]", err)
+					return fmt.Errorf("init DB failed [%v]", err)
 				}
 			}
 		}
 
+		// redis
 		val, ok = structValue(config, "Redis")
+		if ok {
+			c, ok2 := val.(sredis.Config)
+			if ok2 {
+				slog.Info("Init redis.")
+				err = sredis.Init(c)
+				if err != nil {
+					return fmt.Errorf("init redis failed [%v]", err)
+				}
+			}
+		}
+		val, ok = structValue(config, "RedisList")
 		if ok {
 			c, ok2 := val.([]sredis.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init redis.")
 				err = sredis.Init(c...)
 				if err != nil {
-					return fmt.Errorf("init redis error [%v]", err)
+					return fmt.Errorf("init redis failed [%v]", err)
 				}
 			}
 		}
 
-		val, ok = structValue(config, "Elastic")
+		// es
+		val, ok = structValue(config, "Es")
+		if ok {
+			c, ok2 := val.(selastic.Config)
+			if ok2 {
+				slog.Info("Init elastic.")
+				err = selastic.Init(c)
+				if err != nil {
+					return fmt.Errorf("init elastic failed [%v]", err)
+				}
+			}
+		}
+		val, ok = structValue(config, "EsList")
 		if ok {
 			c, ok2 := val.([]selastic.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init elastic.")
 				err = selastic.Init(c...)
 				if err != nil {
-					return fmt.Errorf("init elastic error [%v]", err)
+					return fmt.Errorf("init elastic failed [%v]", err)
 				}
 			}
 		}
 
+		// kafka
 		val, ok = structValue(config, "Kafka")
+		if ok {
+			c, ok2 := val.(skafka.Config)
+			if ok2 {
+				slog.Info("Init kafka.")
+				err = skafka.Init(c)
+				if err != nil {
+					return fmt.Errorf("init kafka failed [%v]", err)
+				}
+			}
+		}
+		val, ok = structValue(config, "KafkaList")
 		if ok {
 			c, ok2 := val.([]skafka.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init kafka.")
 				err = skafka.Init(c...)
 				if err != nil {
-					return fmt.Errorf("init kafka error [%v]", err)
+					return fmt.Errorf("init kafka failed [%v]", err)
 				}
 			}
 		}
