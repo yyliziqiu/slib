@@ -7,7 +7,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-func NewProducer(config Config) (*kafka.Producer, error) {
+func NewProducer(config ProducerConfig) (*kafka.Producer, error) {
 	producer, err := kafka.NewProducer(config.Map())
 	if err != nil {
 		return nil, fmt.Errorf("create producer failed [%v]", err)
@@ -40,8 +40,8 @@ func Produce(producer *kafka.Producer, topic string, message []byte) error {
 	}, nil)
 }
 
-func ProduceObject(producer *kafka.Producer, topic string, object interface{}) error {
-	message, err := json.Marshal(object)
+func ProduceModel(producer *kafka.Producer, topic string, model interface{}) error {
+	message, err := json.Marshal(model)
 	if err != nil {
 		return err
 	}

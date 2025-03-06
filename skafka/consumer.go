@@ -6,7 +6,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-func NewConsumer(config Config) (*kafka.Consumer, error) {
+func NewConsumer(config ConsumerConfig) (*kafka.Consumer, error) {
 	consumer, err := kafka.NewConsumer(config.Map())
 	if err != nil {
 		return nil, fmt.Errorf("create consumer failed [%v]", err)
