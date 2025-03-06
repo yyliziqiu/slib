@@ -7,6 +7,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"os"
 	"reflect"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/yyliziqiu/slib/smime"
 	"github.com/yyliziqiu/slib/stime"
 )
 
@@ -29,7 +31,7 @@ type Client struct {
 	format        string                         // 响应报文格式
 	error         error                          // 响应失败时的 JSON 结构。在响应成功和失败时 JSON 结构不一致时设置，不能是指针
 	dumps         bool                           // 将 HTTP 报文打印到控制台
-	baseUrl       string                         // Url 前缀
+	baseUrl       string                         // URL 前缀
 	logLength     int                            // 最大日志长度
 	logEscape     bool                           // 是否转换日志中的特殊字符
 	requestBefore func(req *http.Request)        // 在发送请求前调用
@@ -59,6 +61,27 @@ func New(options ...Option) *Client {
 	}
 
 	return client
+}
+
+func (cli *Client) get(method string, path string, query url.Values, header http.Header, out interface{}) error {
+	req, err := cli.newRequest(method, path, query, header, nil)
+	if err != nil {
+		return err
+	}
+
+	timer := stime.NewTimer()
+
+	res, err := cli.doRequest(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := cli.handleResponse(res, out)
+
+	cli.logRequest(req, res, nil, body, err, timer.Stops())
+
+	return err
 }
 
 func (cli *Client) newRequest(method string, path string, query url.Values, header http.Header, body io.Reader) (*http.Request, error) {
@@ -182,27 +205,6 @@ func (cli *Client) handleTextResponse(statusCode int, body []byte, out interface
 	return nil
 }
 
-func (cli *Client) get(method string, path string, query url.Values, header http.Header, out interface{}) error {
-	req, err := cli.newRequest(method, path, query, header, nil)
-	if err != nil {
-		return err
-	}
-
-	timer := stime.NewTimer()
-
-	res, err := cli.doRequest(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	body, err := cli.handleResponse(res, out)
-
-	cli.logRequest(req, res, nil, body, err, timer.Stops())
-
-	return err
-}
-
 func (cli *Client) post(method string, path string, query url.Values, header http.Header, in interface{}, out interface{}) error {
 	if in == nil {
 		in = struct{}{}
@@ -233,22 +235,32 @@ func (cli *Client) post(method string, path string, query url.Values, header htt
 	return err
 }
 
+// Get http get
 func (cli *Client) Get(path string, query url.Values, header http.Header, out interface{}) error {
 	return cli.get(http.MethodGet, path, query, header, out)
 }
 
+// Post http post
 func (cli *Client) Post(path string, query url.Values, header http.Header, in interface{}, out interface{}) error {
 	return cli.post(http.MethodPost, path, query, header, in, out)
 }
 
+// Put http put
 func (cli *Client) Put(path string, query url.Values, header http.Header, in interface{}, out interface{}) error {
 	return cli.post(http.MethodPut, path, query, header, in, out)
 }
 
+// Patch http patch
+func (cli *Client) Patch(path string, query url.Values, header http.Header, in interface{}, out interface{}) error {
+	return cli.post(http.MethodPatch, path, query, header, in, out)
+}
+
+// Delete http delete
 func (cli *Client) Delete(path string, query url.Values, header http.Header, out interface{}) error {
 	return cli.get(http.MethodDelete, path, query, header, out)
 }
 
+// GetBinary 获取流数据
 func (cli *Client) GetBinary(path string, query url.Values, header http.Header) ([]byte, string, error) {
 	req, err := cli.newRequest(http.MethodGet, path, query, header, nil)
 	if err != nil {
@@ -271,10 +283,7 @@ func (cli *Client) GetBinary(path string, query url.Values, header http.Header) 
 	return dat, typ, err
 }
 
-func (cli *Client) PostJson(path string, query url.Values, header http.Header, in interface{}, out interface{}) error {
-	return cli.Post(path, query, header, in, out)
-}
-
+// PostForm application/x-www-form-urlencoded 表单请求
 func (cli *Client) PostForm(path string, query url.Values, header http.Header, in url.Values, out interface{}) error {
 	reqBody := in.Encode()
 
@@ -300,7 +309,8 @@ func (cli *Client) PostForm(path string, query url.Values, header http.Header, i
 	return err
 }
 
-func (cli *Client) PostFormData(path string, query url.Values, header http.Header, values map[string]string, files map[string]string, out interface{}) error {
+// PostData multipart/form-data 表单请求
+func (cli *Client) PostData(path string, query url.Values, header http.Header, values map[string]string, files map[string]string, out interface{}) error {
 	var (
 		buf    bytes.Buffer
 		writer = multipart.NewWriter(&buf)
@@ -383,6 +393,7 @@ func (cli *Client) writeFormFile(writer *multipart.Writer, key string, path stri
 	return nil
 }
 
+// PostBinary 上传流数据
 func (cli *Client) PostBinary(path string, query url.Values, header http.Header, mimeType string, in io.Reader, out interface{}) error {
 	req, err := cli.newRequest(http.MethodPost, path, query, header, in)
 	if err != nil {
@@ -401,6 +412,71 @@ func (cli *Client) PostBinary(path string, query url.Values, header http.Header,
 	resBody, err := cli.handleResponse(res, out)
 
 	cli.logRequest(req, res, nil, resBody, err, timer.Stops())
+
+	return err
+}
+
+// PostStream 以 multipart/form-data 形式上传流数据
+func (cli *Client) PostStream(path string, query url.Values, header http.Header, values map[string]string, field string, filename string, mimeType string, stream io.Reader, out interface{}) error {
+	var (
+		buf    bytes.Buffer
+		writer = multipart.NewWriter(&buf)
+	)
+
+	if len(values) > 0 {
+		for key, value := range values {
+			err := writer.WriteField(key, value)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	if mimeType == "" {
+		mimeType = smime.Get(filename)
+	}
+	if stream != nil {
+		h := make(textproto.MIMEHeader)
+		h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`, EscapeQuotes(field), EscapeQuotes(filename)))
+		h.Set("Content-Type", mimeType)
+		part, err := writer.CreatePart(h)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(part, stream)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := writer.Close()
+	if err != nil {
+		return err
+	}
+
+	req, err := cli.newRequest(http.MethodPost, path, query, header, &buf)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	timer := stime.NewTimer()
+
+	res, err := cli.doRequest(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	resBody, err := cli.handleResponse(res, out)
+
+	var reqBody []byte
+	if len(values) == 0 {
+		reqBody = []byte(fmt.Sprintf(`{"%s":"%s"}`, field, filename))
+	} else {
+		values[field] = filename
+		reqBody, _ = json.Marshal(values)
+	}
+	cli.logRequest(req, res, reqBody, resBody, err, timer.Stops())
 
 	return err
 }
