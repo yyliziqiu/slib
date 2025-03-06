@@ -49,10 +49,9 @@ func (c ServerConfig) Join(m kafka.ConfigMap) *kafka.ConfigMap {
 }
 
 type ProducerConfig struct {
-	Server ServerConfig
-
+	Server                ServerConfig
 	Id                    string                     // optional
-	Topic                 string                     // must
+	Topics                []string                   // must
 	RequestRequiredAcks   int                        // optional
 	DeliveredCallback     func(kafka.TopicPartition) `json:"-"` // optional
 	DeliverFailedCallback func(kafka.TopicPartition) `json:"-"` // optional
@@ -77,8 +76,7 @@ func (c ProducerConfig) Map() *kafka.ConfigMap {
 }
 
 type ConsumerConfig struct {
-	Server ServerConfig
-
+	Server                 ServerConfig
 	Id                     string   // optional
 	Topics                 []string // must
 	GroupId                string   // must
