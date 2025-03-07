@@ -3,6 +3,7 @@ package sboot
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -49,6 +50,8 @@ func (app *App) InitConfig() (err error) {
 	}
 	app.hasInitConfig = true
 
+	log.Println("Init config.")
+
 	// 加载配置文件
 	err = sconfig.Init(app.ConfigPath, app.ConfigRoot)
 	if err != nil {
@@ -69,6 +72,8 @@ func (app *App) InitConfig() (err error) {
 	if ok {
 		default0.Default()
 	}
+
+	log.Println("Init log.")
 
 	// 初始化日志
 	logConfig := slog.Config{Console: true}
@@ -127,7 +132,7 @@ func (app *App) Run() (err error) {
 
 	cancel()
 
-	if exitWait, ok := fieldValue(app.ConfigPath, "ExitWait"); ok {
+	if exitWait, ok := fieldValue(app.ConfigRoot, "ExitWait"); ok {
 		exitWait2, ok2 := exitWait.(time.Duration)
 		if ok2 && exitWait2 > 0 {
 			time.Sleep(exitWait2)
