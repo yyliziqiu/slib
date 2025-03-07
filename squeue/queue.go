@@ -19,9 +19,9 @@ var (
 
 type Queue struct {
 	step   int
+	path   string
 	debug  bool
 	logger *logrus.Logger
-	snap   *ssnap.Snap
 
 	list []interface{}
 	head int
@@ -40,7 +40,7 @@ func New2(n int, path string) *Queue {
 
 	q := &Queue{
 		step: n,
-		snap: ssnap.New(path),
+		path: path,
 	}
 
 	q.list = make([]interface{}, n+1)
@@ -584,21 +584,15 @@ func (q *Queue) Load(item interface{}) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	var (
-		itype    = reflect.TypeOf(item)
-		slice    = reflect.MakeSlice(reflect.SliceOf(itype), 0, 0)
-		slicePtr = reflect.New(slice.Type())
-		size     int
-	)
-
-	err := q.snap.LoadData(slicePtr.Interface())
+	sliceT := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(item)), 0, 0)
+	sliceP := reflect.New(sliceT.Type())
+	err := ssnap.Load(q.path, sliceP.Interface())
 	if err != nil {
 		return err
 	}
 
-	size = slicePtr.Elem().Len()
-	slice = slicePtr.Elem().Slice(0, size)
-
+	size := sliceP.Elem().Len()
+	slice := sliceP.Elem().Slice(0, size)
 	var list []interface{}
 	for i := 0; i < size; i++ {
 		list = append(list, slice.Index(i).Interface())
@@ -614,5 +608,5 @@ func (q *Queue) Save() error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	return q.snap.SaveData(q.copyItems())
+	return ssnap.Save(q.path, q.copyItems())
 }
