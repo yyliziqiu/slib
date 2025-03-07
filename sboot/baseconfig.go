@@ -21,7 +21,7 @@ type Config struct {
 	InsId    string
 	BasePath string
 	DataPath string
-	WaitTime time.Duration
+	ExitWait time.Duration
 
 	Log slog.Config
 	Web sweb.Config
@@ -57,12 +57,4 @@ func (c *Config) Default() {
 	if c.DataPath == "" {
 		c.DataPath = filepath.Join(c.BasePath, "data")
 	}
-}
-
-func (c *Config) LogConfig() slog.Config {
-	return c.Log
-}
-
-func (c *Config) ExitWait() time.Duration {
-	return c.WaitTime
 }

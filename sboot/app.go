@@ -19,7 +19,7 @@ type App struct {
 	// app 版本
 	Version string
 
-	// 配置文件路径
+	// 默认配置文件路径，可被命令行参数覆盖
 	ConfigPath string
 
 	// 全局配置
@@ -72,9 +72,11 @@ func (app *App) InitConfig() (err error) {
 
 	// 初始化日志
 	logConfig := slog.Config{Console: true}
-	logConfig0, ok := app.ConfigRoot.(LogConfig)
-	if ok {
-		logConfig = logConfig0.LogConfig()
+	if logConfig1, ok1 := fieldValue(app.ConfigRoot, "Log"); ok1 {
+		logConfig2, ok2 := logConfig1.(slog.Config)
+		if ok2 {
+			logConfig = logConfig2
+		}
 	}
 	err = slog.Init(logConfig)
 	if err != nil {
@@ -125,9 +127,11 @@ func (app *App) Run() (err error) {
 
 	cancel()
 
-	exitWait, ok := app.ConfigRoot.(ExitWait)
-	if ok {
-		time.Sleep(exitWait.ExitWait())
+	if exitWait, ok := fieldValue(app.ConfigPath, "ExitWait"); ok {
+		exitWait2, ok2 := exitWait.(time.Duration)
+		if ok2 && exitWait2 > 0 {
+			time.Sleep(exitWait2)
+		}
 	}
 
 	slog.Info("App exit.")

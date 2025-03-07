@@ -2,9 +2,7 @@ package sboot
 
 import (
 	"context"
-	"time"
-
-	"github.com/yyliziqiu/slib/slog"
+	"reflect"
 )
 
 type InitFunc func() error
@@ -45,12 +43,14 @@ type Default interface {
 	Default()
 }
 
-// LogConfig 获取日志配置
-type LogConfig interface {
-	LogConfig() slog.Config
-}
-
-// ExitWait 获取应用退出时的等待时长
-type ExitWait interface {
-	ExitWait() time.Duration
+func fieldValue(s any, name string) (any, bool) {
+	val := reflect.ValueOf(s)
+	if val.Kind() == reflect.Pointer {
+		val = val.Elem()
+	}
+	field := val.FieldByName(name)
+	if !field.IsValid() {
+		return nil, false
+	}
+	return field.Interface(), true
 }

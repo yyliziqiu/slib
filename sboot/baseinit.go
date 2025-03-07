@@ -3,7 +3,6 @@ package sboot
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"github.com/yyliziqiu/slib/sdb"
 	"github.com/yyliziqiu/slib/selastic"
@@ -15,7 +14,7 @@ import (
 func BaseInit(config any) InitFunc {
 	return func() (err error) {
 		// db
-		if val, ok := structValue(config, "Db"); ok {
+		if val, ok := fieldValue(config, "Db"); ok {
 			c, ok2 := val.(sdb.Config)
 			if ok2 && c.Dsn != "" {
 				slog.Info("Init DB.")
@@ -25,7 +24,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := structValue(config, "Dbs"); ok {
+		if val, ok := fieldValue(config, "Dbs"); ok {
 			c, ok2 := val.([]sdb.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init DB.")
@@ -37,7 +36,7 @@ func BaseInit(config any) InitFunc {
 		}
 
 		// redis
-		if val, ok := structValue(config, "Redis"); ok {
+		if val, ok := fieldValue(config, "Redis"); ok {
 			c, ok2 := val.(sredis.Config)
 			if ok2 && (c.Addr != "" || len(c.Addrs) > 0) {
 				slog.Info("Init redis.")
@@ -47,7 +46,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := structValue(config, "Redises"); ok {
+		if val, ok := fieldValue(config, "Redises"); ok {
 			c, ok2 := val.([]sredis.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init redis.")
@@ -59,7 +58,7 @@ func BaseInit(config any) InitFunc {
 		}
 
 		// elastic
-		if val, ok := structValue(config, "Elastic"); ok {
+		if val, ok := fieldValue(config, "Elastic"); ok {
 			c, ok2 := val.(selastic.Config)
 			if ok2 && len(c.Hosts) > 0 {
 				slog.Info("Init elastic.")
@@ -69,7 +68,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := structValue(config, "Elastics"); ok {
+		if val, ok := fieldValue(config, "Elastics"); ok {
 			c, ok2 := val.([]selastic.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init elastic.")
@@ -81,7 +80,7 @@ func BaseInit(config any) InitFunc {
 		}
 
 		// kafka
-		if val, ok := structValue(config, "Kafka"); ok {
+		if val, ok := fieldValue(config, "Kafka"); ok {
 			c, ok2 := val.(skafka.Config)
 			if ok2 && c.Server.BootstrapServers != "" {
 				slog.Info("Init kafka.")
@@ -91,7 +90,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := structValue(config, "Kafkas"); ok {
+		if val, ok := fieldValue(config, "Kafkas"); ok {
 			c, ok2 := val.([]skafka.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init kafka.")
@@ -104,18 +103,6 @@ func BaseInit(config any) InitFunc {
 
 		return nil
 	}
-}
-
-func structValue(s any, name string) (any, bool) {
-	val := reflect.ValueOf(s)
-	if val.Kind() == reflect.Pointer {
-		val = val.Elem()
-	}
-	field := val.FieldByName(name)
-	if !field.IsValid() {
-		return nil, false
-	}
-	return field.Interface(), true
 }
 
 func BaseBoot() BootFunc {
