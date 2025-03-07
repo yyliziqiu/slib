@@ -15,26 +15,6 @@ import (
 	"github.com/yyliziqiu/slib/sweb"
 )
 
-// ICheck 检查配置是否正确
-type ICheck interface {
-	Check() error
-}
-
-// IDefault 为配置项设置默认值
-type IDefault interface {
-	Default()
-}
-
-// IGetLog 获取日志配置
-type IGetLog interface {
-	GetLog() slog.Config
-}
-
-// IGetWaitTime 获取应用退出时等待时长配置
-type IGetWaitTime interface {
-	GetWaitTime() time.Duration
-}
-
 type Config struct {
 	Env      string
 	AppId    string
@@ -46,10 +26,14 @@ type Config struct {
 	Log slog.Config
 	Web sweb.Config
 
-	Db      []sdb.Config
-	Redis   []sredis.Config
-	Elastic []selastic.Config
-	Kafka   []skafka.Config
+	Db       sdb.Config
+	Redis    sredis.Config
+	Kafka    skafka.Config
+	Elastic  selastic.Config
+	Dbs      []sdb.Config
+	Redises  []sredis.Config
+	Kafkas   []skafka.Config
+	Elastics []selastic.Config
 
 	CronTask []stask.CronTask
 	OnceTask []stask.OnceTask
@@ -75,10 +59,10 @@ func (c *Config) Default() {
 	}
 }
 
-func (c *Config) GetLog() slog.Config {
+func (c *Config) LogConfig() slog.Config {
 	return c.Log
 }
 
-func (c *Config) GetWaitTime() time.Duration {
+func (c *Config) ExitWait() time.Duration {
 	return c.WaitTime
 }

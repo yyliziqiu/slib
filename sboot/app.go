@@ -26,12 +26,11 @@ type App struct {
 	ConfigRoot any
 
 	// 模块
-	InitFuncs   InitFuncs
-	BootFuncs   BootFuncs
-	InitFuncsCb func() InitFuncs
-	BootFuncsCb func() BootFuncs
+	InitFuncs func() InitFuncs
+	BootFuncs func() BootFuncs
 
-	hasCallInitFuncs bool
+	hasInitConfig bool
+	hasInitModule bool
 }
 
 // Init app
@@ -40,129 +39,95 @@ func (app *App) Init() (err error) {
 	if err != nil {
 		return err
 	}
-	return app.CallInitFuncs()
+
+	return app.InitModule()
 }
 
 func (app *App) InitConfig() (err error) {
+	if app.hasInitConfig {
+		return nil
+	}
+	app.hasInitConfig = true
+
 	// 加载配置文件
 	err = sconfig.Init(app.ConfigPath, app.ConfigRoot)
 	if err != nil {
-		return fmt.Errorf("init config error [%v]", err)
+		return fmt.Errorf("init config failed [%v]", err)
 	}
 
 	// 检查配置是否正确
-	icheck, ok := app.ConfigRoot.(ICheck)
+	check, ok := app.ConfigRoot.(Check)
 	if ok {
-		err = icheck.Check()
+		err = check.Check()
 		if err != nil {
 			return err
 		}
 	}
 
-	// 为配置项设置默认值
-	idefault, ok := app.ConfigRoot.(IDefault)
+	// 为配置设置默认值
+	default0, ok := app.ConfigRoot.(Default)
 	if ok {
-		idefault.Default()
+		default0.Default()
 	}
 
 	// 初始化日志
-	logc := slog.Config{Console: true}
-	ilog, ok := app.ConfigRoot.(IGetLog)
+	logConfig := slog.Config{Console: true}
+	logConfig0, ok := app.ConfigRoot.(LogConfig)
 	if ok {
-		logc = ilog.GetLog()
+		logConfig = logConfig0.LogConfig()
 	}
-	err = slog.Init(logc)
+	err = slog.Init(logConfig)
 	if err != nil {
-		return fmt.Errorf("init log error [%v]", err)
+		return fmt.Errorf("init log failed [%v]", err)
 	}
 
 	return nil
 }
 
-func (app *App) CallInitFuncs() (err error) {
-	if app.hasCallInitFuncs {
+func (app *App) InitModule() (err error) {
+	if app.hasInitModule {
 		return nil
 	}
-	app.hasCallInitFuncs = true
+	app.hasInitModule = true
 
-	initFuncs := app.InitFuncs
-	if app.InitFuncsCb != nil {
-		initFuncs = app.InitFuncsCb()
-	}
-
-	slog.Info("Prepare init funcs.")
-	err = initFuncs.Init()
+	slog.Info("Init modules.")
+	err = app.InitFuncs().Init()
 	if err != nil {
-		slog.Errorf("Init funcs failed, error: %v", err)
+		slog.Errorf("Init modules failed, error: %v", err)
 		return err
 	}
-	slog.Info("Init funcs succeed.")
 
 	return nil
-}
-
-// Start app
-func (app *App) Start() (err error, f context.CancelFunc) {
-	err = app.InitConfig()
-	if err != nil {
-		return err, nil
-	}
-	return app.CallBootFuncs()
-}
-
-func (app *App) CallBootFuncs() (error, context.CancelFunc) {
-	err := app.CallInitFuncs()
-	if err != nil {
-		return err, nil
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	bootFuncs := app.BootFuncs
-	if app.BootFuncsCb != nil {
-		bootFuncs = app.BootFuncsCb()
-	}
-
-	slog.Info("Prepare boot funcs.")
-	err = bootFuncs.Boot(ctx)
-	if err != nil {
-		slog.Errorf("Boot funcs failed, error: %v", err)
-		cancel()
-		return err, nil
-	}
-	slog.Info("Boot funcs successfully.")
-
-	return nil, cancel
 }
 
 // Run app
 func (app *App) Run() (err error) {
-	err = app.InitConfig()
-	if err != nil {
-		return err
-	}
-	return app.CallBootFuncsBlocked()
-}
-
-func (app *App) CallBootFuncsBlocked() (err error) {
-	err, cancel := app.CallBootFuncs()
+	err = app.Init()
 	if err != nil {
 		return err
 	}
 
-	slog.Info("App run successfully.")
+	ctx, cancel := context.WithCancel(context.Background())
+
+	slog.Info("Boot modules.")
+	err = app.BootFuncs().Boot(ctx)
+	if err != nil {
+		slog.Errorf("Boot modules failed, error: %v", err)
+		cancel()
+		return err
+	}
+
+	slog.Info("App boot successfully.")
 
 	exitCh := make(chan os.Signal)
 	signal.Notify(exitCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	<-exitCh
 
-	slog.Info("App prepare exit.")
-
 	cancel()
 
-	iwaittime, ok := app.ConfigRoot.(IGetWaitTime)
+	exitWait, ok := app.ConfigRoot.(ExitWait)
 	if ok {
-		time.Sleep(iwaittime.GetWaitTime())
+		time.Sleep(exitWait.ExitWait())
 	}
 
 	slog.Info("App exit.")

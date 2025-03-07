@@ -39,7 +39,7 @@ func initRootCommand(app *App) {
 			}
 			err := app.InitConfig()
 			if err != nil {
-				fmt.Printf("Init app failed, error: %v\n", err)
+				fmt.Printf("Init config failed, error: %v\n", err)
 				os.Exit(1)
 			}
 		},
