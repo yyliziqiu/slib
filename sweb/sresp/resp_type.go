@@ -18,12 +18,12 @@ C开头 三方服务错误
 */
 
 var (
-	BadRequestError          = serror.New("A0001", "Bad Request").StatusCode(http.StatusBadRequest)
-	UnauthorizedError        = serror.New("A0002", "Unauthorized").StatusCode(http.StatusUnauthorized)
-	ForbiddenError           = serror.New("A0003", "Forbidden").StatusCode(http.StatusForbidden)
-	NotFoundError            = serror.New("A0004", "Not Found").StatusCode(http.StatusNotFound)
-	MethodNotAllowedError    = serror.New("A0005", "Method Not Allowed").StatusCode(http.StatusMethodNotAllowed)
-	InternalServerErrorError = serror.New("B0001", "Internal Server Error").StatusCode(http.StatusInternalServerError)
+	BadRequestError          = serror.New2(400, "A0001", "Bad Request")
+	UnauthorizedError        = serror.New2(401, "A0002", "Unauthorized")
+	ForbiddenError           = serror.New2(403, "A0003", "Forbidden")
+	NotFoundError            = serror.New2(404, "A0004", "Not Found")
+	MethodNotAllowedError    = serror.New2(405, "A0005", "Method Not Allowed")
+	InternalServerErrorError = serror.New2(500, "B0001", "Internal Server Error")
 )
 
 type ErrorResult struct {
@@ -36,10 +36,6 @@ func NewErrorResult(code string, message string) ErrorResult {
 		Code:    code,
 		Message: message,
 	}
-}
-
-func NewErrorResult2(err *serror.Error) ErrorResult {
-	return NewErrorResult(err.Code, err.Message)
 }
 
 func errorResponse(err error, verbose bool) (int, ErrorResult) {

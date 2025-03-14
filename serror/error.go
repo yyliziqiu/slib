@@ -6,8 +6,7 @@ import (
 )
 
 type Error struct {
-	statusCode int
-
+	status  int
 	Code    string
 	Message string
 }
@@ -20,15 +19,7 @@ func New(code string, message string) *Error {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("code: %s, message: %s", e.Code, e.Message)
-}
-
-func (e *Error) clone(message string) *Error {
-	return &Error{
-		statusCode: e.statusCode,
-		Code:       e.Code,
-		Message:    message,
-	}
+	return "#" + e.Code + " " + e.Message
 }
 
 func (e *Error) With(v interface{}) *Error {
@@ -44,6 +35,14 @@ func (e *Error) With(v interface{}) *Error {
 	return e.clone(message)
 }
 
+func (e *Error) clone(message string) *Error {
+	return &Error{
+		status:  e.status,
+		Code:    e.Code,
+		Message: message,
+	}
+}
+
 func (e *Error) Wrap(err error) *Error {
 	return e.clone(fmt.Sprintf("%s [%v]", e.Message, err))
 }
@@ -56,20 +55,32 @@ func (e *Error) Fields(a ...interface{}) *Error {
 	return e.clone(fmt.Sprintf(e.Message, a...))
 }
 
-func (e *Error) StatusCode(code int) *Error {
-	e.statusCode = code
+func New2(status int, code string, message string) *Error {
+	return &Error{
+		status:  status,
+		Code:    code,
+		Message: message,
+	}
+}
+
+func (e *Error) SetStatus(status int) *Error {
+	e.status = status
 	return e
 }
 
-func (e *Error) Http() (int, string, string) {
-	if e.statusCode != 0 {
-		return e.statusCode, e.Code, e.Message
+func (e *Error) GetStatus() int {
+	if e.status != 0 {
+		return e.status
 	}
 
-	statusCode := http.StatusBadRequest
+	status := http.StatusBadRequest
 	if e.Code[0] != 'A' {
-		statusCode = http.StatusInternalServerError
+		status = http.StatusInternalServerError
 	}
 
-	return statusCode, e.Code, e.Message
+	return status
+}
+
+func (e *Error) Http() (int, string, string) {
+	return e.GetStatus(), e.Code, e.Message
 }
