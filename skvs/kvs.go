@@ -2,6 +2,7 @@ package skvs
 
 import (
 	"strings"
+	"time"
 
 	"github.com/yyliziqiu/slib/sconv"
 )
@@ -45,6 +46,14 @@ func (k Kvs) Float64(key string) (float64, bool) {
 	return 0, false
 }
 
+func (k Kvs) Duration(key string) (time.Duration, bool) {
+	if val, ok := k.String(key); ok {
+		d, _ := time.ParseDuration(val)
+		return d, true
+	}
+	return 0, false
+}
+
 // 2
 
 func (k Kvs) S(key string, def string) string {
@@ -82,6 +91,13 @@ func (k Kvs) F64(key string, def float64) float64 {
 	return def
 }
 
+func (k Kvs) D(key string, def time.Duration) time.Duration {
+	if val, ok := k.Duration(key); ok {
+		return val
+	}
+	return def
+}
+
 // 3
 
 var lower = strings.ToLower
@@ -104,6 +120,10 @@ func (k Kvs) ICI64(key string, def int64) int64 {
 
 func (k Kvs) ICF64(key string, def float64) float64 {
 	return k.F64(lower(key), def)
+}
+
+func (k Kvs) ICD(key string, def time.Duration) time.Duration {
+	return k.D(lower(key), def)
 }
 
 // 4
