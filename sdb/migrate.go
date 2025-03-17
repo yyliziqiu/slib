@@ -12,14 +12,14 @@ import (
 )
 
 type Migration struct {
-	Db       *gorm.DB
-	Once     []schema.Tabler
-	Cron     []schema.Tabler
-	Interval time.Duration
+	Db   *gorm.DB
+	Poll time.Duration
+	Once []schema.Tabler
+	Cron []schema.Tabler
 }
 
-func Migrates(ctx context.Context, migrations func() []Migration) (err error) {
-	for _, migration := range migrations() {
+func Migrates(ctx context.Context, migrations []Migration) (err error) {
+	for _, migration := range migrations {
 		err = Migrate(ctx, migration)
 		if err != nil {
 			return err
@@ -39,11 +39,13 @@ func Migrate(ctx context.Context, migration Migration) (err error) {
 	if len(migration.Cron) == 0 {
 		return nil
 	}
+
 	err = migrateTables(db, migration.Cron)
 	if err != nil {
 		return fmt.Errorf("migrate cron tables failed [%v]", err)
 	}
-	go runMigrateCronTables(ctx, db, migration.Cron, migration.Interval)
+
+	go runMigrateCronTables(ctx, db, migration.Cron, migration.Poll)
 
 	return nil
 }

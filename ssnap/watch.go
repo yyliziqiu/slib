@@ -38,9 +38,7 @@ func handlerInterval(handler Handler) time.Duration {
 	return 0
 }
 
-func Watch(ctx context.Context, handlersFunc func() []Handler) error {
-	handlers := handlersFunc()
-
+func Watch(ctx context.Context, handlers []Handler) error {
 	err := watchLoad(handlers)
 	if err != nil {
 		return err
@@ -55,6 +53,7 @@ func Watch(ctx context.Context, handlersFunc func() []Handler) error {
 
 func watchLoad(handlers []Handler) error {
 	timer := stime.NewTimer()
+
 	for _, handler := range handlers {
 		err := handler.Load()
 		if err != nil {
@@ -63,7 +62,9 @@ func watchLoad(handlers []Handler) error {
 		}
 		slog.Infof("Load snap succeed, name: %s, cost: %s.", handlerName(handler), timer.Pauses())
 	}
+
 	slog.Infof("Load snaps compeleted, cost: %s.", timer.Stops())
+
 	return nil
 }
 
@@ -90,11 +91,13 @@ func runWatchSave(ctx context.Context, handler Handler) {
 
 func watchSave(handler Handler) error {
 	timer := stime.NewTimer()
+
 	err := handler.Save()
 	if err != nil {
 		slog.Errorf("Save snap failed, name: %s, error: %v.", handlerName(handler), err)
 	} else {
 		slog.Infof("Save snap succeed, name: %s, cost: %s.", handlerName(handler), timer.Stops())
 	}
+
 	return err
 }
