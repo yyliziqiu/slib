@@ -144,8 +144,8 @@ func newHook(config Config) (*lfshook.LfsHook, error) {
 	}
 
 	// 美化日志文件名
-	if !strings.HasSuffix(name, "-") {
-		name = name + "-"
+	if strings.HasSuffix(name, "-") {
+		name = strings.TrimSuffix(name, "-")
 	}
 
 	// 生成 output
@@ -193,26 +193,26 @@ func newDispatch(name string, rtl int) Dispatch {
 	switch rtl {
 	case 3:
 		dispatch = Dispatch{
-			name:           {d, i},
-			name + "warn":  {w},
-			name + "error": {e, f, p},
+			name:            {d, i},
+			name + "-warn":  {w},
+			name + "-error": {e, f, p},
 		}
 	case 4:
 		dispatch = Dispatch{
-			name + "debug": {d},
-			name + "info":  {i},
-			name + "warn":  {w},
-			name + "error": {e, f, p},
+			name + "-debug": {d},
+			name + "-info":  {i},
+			name + "-warn":  {w},
+			name + "-error": {e, f, p},
 		}
 	case 5:
 		dispatch = Dispatch{
-			name:           {d, i},
-			name + "error": {w, e, f, p},
+			name:            {d, i},
+			name + "-error": {w, e, f, p},
 		}
 	default:
 		dispatch = Dispatch{
-			name:           {d, i, w},
-			name + "error": {e, f, p},
+			name:            {d, i, w},
+			name + "-error": {e, f, p},
 		}
 	}
 
