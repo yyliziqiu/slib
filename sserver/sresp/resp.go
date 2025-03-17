@@ -16,7 +16,7 @@ func ResponseError(ctx *gin.Context, statusCode int, code string, message string
 	ctx.JSON(statusCode, NewErrorResult(code, message))
 }
 
-func OK(ctx *gin.Context) {
+func Ok(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "")
 }
 
@@ -38,7 +38,7 @@ func ErrorString(ctx *gin.Context, message string) {
 
 // ============ Abort ============
 
-func AbortOK(ctx *gin.Context) {
+func AbortOk(ctx *gin.Context) {
 	ctx.AbortWithStatus(http.StatusOK)
 }
 

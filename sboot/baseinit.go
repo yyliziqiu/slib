@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/yyliziqiu/slib/sdb"
-	"github.com/yyliziqiu/slib/selastic"
+	"github.com/yyliziqiu/slib/ses"
 	"github.com/yyliziqiu/slib/skafka"
 	"github.com/yyliziqiu/slib/slog"
 	"github.com/yyliziqiu/slib/sredis"
@@ -17,20 +17,42 @@ func BaseInit(config any) InitFunc {
 		if val, ok := fieldValue(config, "Db"); ok {
 			c, ok2 := val.(sdb.Config)
 			if ok2 && c.Dsn != "" {
-				slog.Info("Init DB.")
+				slog.Info("Init database.")
 				err = sdb.Init(c)
 				if err != nil {
-					return fmt.Errorf("init DB failed [%v]", err)
+					return fmt.Errorf("init database failed [%v]", err)
 				}
 			}
 		}
-		if val, ok := fieldValue(config, "Dbs"); ok {
+		if val, ok := fieldValue(config, "DbList"); ok {
 			c, ok2 := val.([]sdb.Config)
 			if ok2 && len(c) > 0 {
-				slog.Info("Init DB.")
+				slog.Info("Init database list.")
 				err = sdb.Init(c...)
 				if err != nil {
-					return fmt.Errorf("init DB failed [%v]", err)
+					return fmt.Errorf("init database list failed [%v]", err)
+				}
+			}
+		}
+
+		// es
+		if val, ok := fieldValue(config, "Es"); ok {
+			c, ok2 := val.(ses.Config)
+			if ok2 && len(c.Hosts) > 0 {
+				slog.Info("Init es.")
+				err = ses.Init(c)
+				if err != nil {
+					return fmt.Errorf("init es failed [%v]", err)
+				}
+			}
+		}
+		if val, ok := fieldValue(config, "EsList"); ok {
+			c, ok2 := val.([]ses.Config)
+			if ok2 && len(c) > 0 {
+				slog.Info("Init es list.")
+				err = ses.Init(c...)
+				if err != nil {
+					return fmt.Errorf("init es list failed [%v]", err)
 				}
 			}
 		}
@@ -46,35 +68,13 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := fieldValue(config, "Redises"); ok {
+		if val, ok := fieldValue(config, "RedisList"); ok {
 			c, ok2 := val.([]sredis.Config)
 			if ok2 && len(c) > 0 {
-				slog.Info("Init redis.")
+				slog.Info("Init redis list.")
 				err = sredis.Init(c...)
 				if err != nil {
-					return fmt.Errorf("init redis failed [%v]", err)
-				}
-			}
-		}
-
-		// elastic
-		if val, ok := fieldValue(config, "Elastic"); ok {
-			c, ok2 := val.(selastic.Config)
-			if ok2 && len(c.Hosts) > 0 {
-				slog.Info("Init elastic.")
-				err = selastic.Init(c)
-				if err != nil {
-					return fmt.Errorf("init elastic failed [%v]", err)
-				}
-			}
-		}
-		if val, ok := fieldValue(config, "Elastics"); ok {
-			c, ok2 := val.([]selastic.Config)
-			if ok2 && len(c) > 0 {
-				slog.Info("Init elastic.")
-				err = selastic.Init(c...)
-				if err != nil {
-					return fmt.Errorf("init elastic failed [%v]", err)
+					return fmt.Errorf("init redis list failed [%v]", err)
 				}
 			}
 		}
@@ -90,13 +90,13 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := fieldValue(config, "Kafkas"); ok {
+		if val, ok := fieldValue(config, "KafkaList"); ok {
 			c, ok2 := val.([]skafka.Config)
 			if ok2 && len(c) > 0 {
-				slog.Info("Init kafka.")
+				slog.Info("Init kafka list.")
 				err = skafka.Init(c...)
 				if err != nil {
-					return fmt.Errorf("init kafka failed [%v]", err)
+					return fmt.Errorf("init kafka list failed [%v]", err)
 				}
 			}
 		}
@@ -110,9 +110,9 @@ func BaseBoot() BootFunc {
 		go func() {
 			<-ctx.Done()
 			sdb.Finally()
+			ses.Finally()
 			sredis.Finally()
 			skafka.Finally()
-			selastic.Finally()
 		}()
 		return nil
 	}

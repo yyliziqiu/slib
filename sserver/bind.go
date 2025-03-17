@@ -1,10 +1,10 @@
-package sweb
+package sserver
 
 import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/yyliziqiu/slib/serror"
-	"github.com/yyliziqiu/slib/sweb/sresp"
+	"github.com/yyliziqiu/slib/sserver/sresp"
 )
 
 var ParamError = serror.New("A0100", "request params error")

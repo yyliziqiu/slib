@@ -1,4 +1,4 @@
-package sweb
+package sserver
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/yyliziqiu/slib/slog"
-	"github.com/yyliziqiu/slib/sweb/sresp"
+	"github.com/yyliziqiu/slib/sserver/sresp"
 )
 
 func Run(config Config, routes ...func(engine *gin.Engine)) error {
@@ -68,22 +68,22 @@ func logFormatter(param gin.LogFormatterParams) string {
 }
 
 func recovery(ctx *gin.Context, err interface{}) {
-	_errorLogger.Warnf("Web panic, path: %s, error: %v", ctx.FullPath(), err)
+	_errorLogger.Warnf("Server panic, path: %s, error: %v", ctx.FullPath(), err)
 	sresp.AbortInternalServerError(ctx)
-}
-
-func GetAccessLogger() *logrus.Logger {
-	return _accessLogger
-}
-
-func SetAccessLogger(logger *logrus.Logger) {
-	_accessLogger = logger
 }
 
 func GetErrorLogger() *logrus.Logger {
 	return _errorLogger
 }
 
+func GetAccessLogger() *logrus.Logger {
+	return _accessLogger
+}
+
 func SetErrorLogger(logger *logrus.Logger) {
 	_errorLogger = logger
+}
+
+func SetAccessLogger(logger *logrus.Logger) {
+	_accessLogger = logger
 }

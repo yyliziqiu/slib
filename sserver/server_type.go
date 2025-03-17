@@ -1,12 +1,12 @@
-package sweb
+package sserver
 
 import (
 	"github.com/sirupsen/logrus"
 )
 
 var (
-	_accessLogger *logrus.Logger
 	_errorLogger  *logrus.Logger
+	_accessLogger *logrus.Logger
 )
 
 type Config struct {

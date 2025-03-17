@@ -1,4 +1,4 @@
-package selastic
+package ses
 
 import (
 	"github.com/olivere/elastic/v7"

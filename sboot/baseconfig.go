@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/yyliziqiu/slib/sdb"
-	"github.com/yyliziqiu/slib/selastic"
 	"github.com/yyliziqiu/slib/senv"
+	"github.com/yyliziqiu/slib/ses"
 	"github.com/yyliziqiu/slib/skafka"
 	"github.com/yyliziqiu/slib/skvs"
 	"github.com/yyliziqiu/slib/slog"
 	"github.com/yyliziqiu/slib/sredis"
+	"github.com/yyliziqiu/slib/sserver"
 	"github.com/yyliziqiu/slib/stask"
-	"github.com/yyliziqiu/slib/sweb"
 )
 
 type Config struct {
@@ -23,17 +23,17 @@ type Config struct {
 	DataPath string
 	ExitWait time.Duration
 
-	Log slog.Config
-	Web sweb.Config
+	Server sserver.Config
+	Log    slog.Config
 
-	Db       sdb.Config
-	Redis    sredis.Config
-	Kafka    skafka.Config
-	Elastic  selastic.Config
-	Dbs      []sdb.Config
-	Redises  []sredis.Config
-	Kafkas   []skafka.Config
-	Elastics []selastic.Config
+	Db        sdb.Config
+	Es        ses.Config
+	Redis     sredis.Config
+	Kafka     skafka.Config
+	DbList    []sdb.Config
+	EsList    []ses.Config
+	RedisList []sredis.Config
+	KafkaList []skafka.Config
 
 	CronTask []stask.CronTask
 	OnceTask []stask.OnceTask

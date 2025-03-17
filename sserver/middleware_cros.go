@@ -1,11 +1,11 @@
-package sweb
+package sserver
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/yyliziqiu/slib/sweb/sresp"
+	"github.com/yyliziqiu/slib/sserver/sresp"
 )
 
 type CrosHeaders struct {
@@ -54,6 +54,6 @@ func CrosMiddleware(ctx *gin.Context) {
 	}
 
 	if ctx.Request.Method == http.MethodOptions {
-		sresp.AbortOK(ctx)
+		sresp.AbortOk(ctx)
 	}
 }
