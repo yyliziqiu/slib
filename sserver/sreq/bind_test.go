@@ -1,6 +1,7 @@
 package sreq
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -13,10 +14,13 @@ type TestForm struct {
 
 func TestBind(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	ctx.Request, _ = http.NewRequest("GET", "http://example.com?name=matrix", nil)
 
 	var form TestForm
 	ok := Bind(ctx, &form)
 	if !ok {
-		t.Error("bind failed")
+		t.Fatal("bind failed")
 	}
+
+	t.Log(form)
 }
