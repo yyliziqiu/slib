@@ -76,6 +76,6 @@ func GetLogger() *logrus.Logger {
 	return _logger1
 }
 
-func SetLogger() *logrus.Logger {
-	return _logger1
+func SetLogger(logger *logrus.Logger) {
+	_logger1 = logger
 }
