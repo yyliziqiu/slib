@@ -29,7 +29,7 @@ func Init(config Config) (err error) {
 		return err
 	}
 
-	Console, err = newConsole(_config)
+	Console, err = newConsoleLogger(_config)
 	if err != nil {
 		return err
 	}
@@ -39,9 +39,9 @@ func Init(config Config) (err error) {
 
 func New(config Config) (*logrus.Logger, error) {
 	if config.Console {
-		return newConsole(config)
+		return newConsoleLogger(config)
 	}
-	return newFile(config)
+	return newFileLogger(config)
 }
 
 func New2(name string) (*logrus.Logger, error) {
@@ -58,14 +58,15 @@ func New3(name string) *logrus.Logger {
 	return logger
 }
 
-func newConsole(config Config) (*logrus.Logger, error) {
+func newConsoleLogger(config Config) (*logrus.Logger, error) {
+	// 创建日志
 	logger := logrus.New()
 
 	// 设置日志等级
-	logger.SetLevel(level(config.Level))
+	logger.SetLevel(parseLevel(config.Level))
 
 	// 设置日志格式
-	logger.SetFormatter(formatter(config))
+	logger.SetFormatter(newFormatter(config))
 
 	// 禁止输出方法名
 	logger.SetReportCaller(config.ShowCaller)
@@ -73,15 +74,15 @@ func newConsole(config Config) (*logrus.Logger, error) {
 	return logger, nil
 }
 
-func level(name string) logrus.Level {
-	lvl, err := logrus.ParseLevel(name)
+func parseLevel(name string) logrus.Level {
+	level, err := logrus.ParseLevel(name)
 	if err != nil {
 		return logrus.DebugLevel
 	}
-	return lvl
+	return level
 }
 
-func formatter(config Config) logrus.Formatter {
+func newFormatter(config Config) logrus.Formatter {
 	var (
 		dataFormat = config.DataFormat
 		dateFormat = config.DateFormat
@@ -104,88 +105,42 @@ func formatter(config Config) logrus.Formatter {
 	}
 }
 
-func newFile(config Config) (*logrus.Logger, error) {
+func newFileLogger(config Config) (*logrus.Logger, error) {
+	// 创建日志
 	logger := logrus.New()
 
 	// 禁止控制台输出
 	logger.SetOutput(io.Discard)
 
 	// 设置日志等级
-	logger.SetLevel(level(config.Level))
+	logger.SetLevel(parseLevel(config.Level))
 
 	// 禁止输出方法名
 	logger.SetReportCaller(config.ShowCaller)
 
 	// 日志按天分割
-	var err error
-	var hook *lfshook.LfsHook
-	switch config.RotationLevel {
-	case 0:
-		hook, err = rotatesHook0(config)
-	case 1:
-		hook, err = rotatesHook1(config)
-	default:
-		hook, err = rotatesHook2(config)
-	}
+	hook, err := newHook(config)
 	if err != nil {
-		return nil, fmt.Errorf("create hook failed [%v]", err)
+		return nil, err
 	}
 	logger.AddHook(hook)
 
 	return logger, nil
 }
 
-func rotatesHook0(config Config) (*lfshook.LfsHook, error) {
+func newHook(config Config) (*lfshook.LfsHook, error) {
 	var (
-		name         = config.Name
-		path         = config.Path
-		maxAge       = config.MaxAge
-		rotationTime = config.RotationTime
-	)
-
-	// 确保日志目录存在
-	err := sfile.MakeDir(config.Path)
-	if err != nil {
-		return nil, fmt.Errorf("create logs dir failed [%v]", err)
-	}
-
-	// 美化日志文件名
-	if !strings.HasSuffix(name, "-") {
-		name = name + "-"
-	}
-
-	// 创建分割器
-	rotation, err := rotates(path, name+"%Y%m%d.log", maxAge, rotationTime)
-	if err != nil {
-		return nil, fmt.Errorf("create rotate failed [%v]", err)
-	}
-	errorRotation, err := rotates(path, name+"error-%Y%m%d.log", maxAge, rotationTime)
-	if err != nil {
-		return nil, fmt.Errorf("create rotate failed [%v]", err)
-	}
-
-	return lfshook.NewHook(lfshook.WriterMap{
-		logrus.DebugLevel: rotation,
-		logrus.InfoLevel:  rotation,
-		logrus.WarnLevel:  rotation,
-		logrus.ErrorLevel: errorRotation,
-		logrus.FatalLevel: errorRotation,
-		logrus.PanicLevel: errorRotation,
-	}, formatter(config)), nil
-}
-
-func rotatesHook1(config Config) (*lfshook.LfsHook, error) {
-	var (
-		name         = config.Name
-		path         = config.Path
-		maxAge       = config.MaxAge
-		rotationTime = config.RotationTime
+		name = config.Name
+		path = config.Path
+		age  = config.MaxAge
+		rtt  = config.RotationTime
+		rtl  = config.RotationLevel
 	)
 
 	// 确保日志目录存在
 	err := sfile.MakeDir(path)
 	if err != nil {
-		return nil, fmt.Errorf("create logs dir failed [%v]", err)
+		return nil, fmt.Errorf("make log dir failed [%v]", err)
 	}
 
 	// 美化日志文件名
@@ -193,62 +148,73 @@ func rotatesHook1(config Config) (*lfshook.LfsHook, error) {
 		name = name + "-"
 	}
 
-	// 创建分割器
-	rotation, err := rotates(path, name+"%Y%m%d.log", maxAge, rotationTime)
+	// 生成 output
+	var output any
+	if rtl == 1 {
+		output, err = newRotation(path, name, age, rtt)
+	} else {
+		output, err = newOutput(newDispatch(name, rtl), path, age, rtt)
+	}
 	if err != nil {
-		return nil, fmt.Errorf("create rotate failed [%v]", err)
+		return nil, err
 	}
 
-	return lfshook.NewHook(rotation, formatter(config)), nil
+	return lfshook.NewHook(output, newFormatter(config)), nil
 }
 
-func rotatesHook2(config Config) (*lfshook.LfsHook, error) {
+func newRotation(name string, dir string, age time.Duration, rtt time.Duration) (*rotate.RotateLogs, error) {
+	rt, err := rotate.New(filepath.Join(dir, name+"-%Y%m%d.log"), rotate.WithMaxAge(age), rotate.WithRotationTime(rtt))
+	if err != nil {
+		return nil, fmt.Errorf("new rotation failed [%v]", err)
+	}
+	return rt, nil
+}
+
+func newOutput(dispatch Dispatch, dir string, age time.Duration, rtt time.Duration) (lfshook.WriterMap, error) {
+	output := lfshook.WriterMap{}
+	for name, levels := range dispatch {
+		rt, err := newRotation(name, dir, age, rtt)
+		if err != nil {
+			return nil, err
+		}
+		for _, level := range levels {
+			output[level] = rt
+		}
+	}
+	return output, nil
+}
+
+func newDispatch(name string, rtl int) Dispatch {
 	var (
-		name         = config.Name
-		path         = config.Path
-		maxAge       = config.MaxAge
-		rotationTime = config.RotationTime
+		dispatch         Dispatch
+		d, i, w, e, f, p logrus.Level = 5, 4, 3, 2, 1, 0
 	)
 
-	// 确保日志目录存在
-	err := sfile.MakeDir(config.Path)
-	if err != nil {
-		return nil, fmt.Errorf("create logs dir failed [%v]", err)
+	switch rtl {
+	case 3:
+		dispatch = Dispatch{
+			name:           {d, i},
+			name + "warn":  {w},
+			name + "error": {e, f, p},
+		}
+	case 4:
+		dispatch = Dispatch{
+			name + "debug": {d},
+			name + "info":  {i},
+			name + "warn":  {w},
+			name + "error": {e, f, p},
+		}
+	case 5:
+		dispatch = Dispatch{
+			name:           {d, i},
+			name + "error": {w, e, f, p},
+		}
+	default:
+		dispatch = Dispatch{
+			name:           {d, i, w},
+			name + "error": {e, f, p},
+		}
 	}
 
-	// 美化日志文件名
-	if !strings.HasSuffix(name, "-") {
-		name = name + "-"
-	}
-
-	// 创建分割器
-	debugRotation, err := rotates(path, name+"debug-%Y%m%d.log", maxAge, rotationTime)
-	if err != nil {
-		return nil, fmt.Errorf("create rotate failed [%v]", err)
-	}
-	infoRotation, err := rotates(path, name+"info-%Y%m%d.log", maxAge, rotationTime)
-	if err != nil {
-		return nil, fmt.Errorf("create rotate failed [%v]", err)
-	}
-	warnRotation, err := rotates(path, name+"warn-%Y%m%d.log", maxAge, rotationTime)
-	if err != nil {
-		return nil, fmt.Errorf("create rotate failed [%v]", err)
-	}
-	errorRotation, err := rotates(path, name+"error-%Y%m%d.log", maxAge, rotationTime)
-	if err != nil {
-		return nil, fmt.Errorf("create rotate failed [%v]", err)
-	}
-
-	return lfshook.NewHook(lfshook.WriterMap{
-		logrus.DebugLevel: debugRotation,
-		logrus.InfoLevel:  infoRotation,
-		logrus.WarnLevel:  warnRotation,
-		logrus.ErrorLevel: errorRotation,
-		logrus.FatalLevel: errorRotation,
-		logrus.PanicLevel: errorRotation,
-	}, formatter(config)), nil
-}
-
-func rotates(dirname string, filename string, maxAge time.Duration, RotationTime time.Duration) (*rotate.RotateLogs, error) {
-	return rotate.New(filepath.Join(dirname, filename), rotate.WithMaxAge(maxAge), rotate.WithRotationTime(RotationTime))
+	return dispatch
 }

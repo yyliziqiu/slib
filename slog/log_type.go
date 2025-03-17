@@ -1,11 +1,17 @@
 package slog
 
-import "time"
+import (
+	"time"
+
+	"github.com/sirupsen/logrus"
+)
 
 const (
 	TextFormat = "text"
 	JsonFormat = "json"
 )
+
+type Dispatch map[string][]logrus.Level
 
 type Config struct {
 	Console       bool
@@ -41,6 +47,9 @@ func (c Config) Default() Config {
 	}
 	if c.RotationTime == 0 {
 		c.RotationTime = 24 * time.Hour
+	}
+	if c.RotationLevel == 0 {
+		c.RotationLevel = 2
 	}
 	return c
 }

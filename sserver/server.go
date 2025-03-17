@@ -12,15 +12,45 @@ import (
 	"github.com/yyliziqiu/slib/sserver/sresp"
 )
 
+var (
+	_logger1 *logrus.Logger // 记录错误日志
+	_logger2 *logrus.Logger // 记录访问日志
+)
+
 func Run(config Config, routes ...func(engine *gin.Engine)) error {
 	config = config.Default()
 
+	// gin 全局设置
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableConsoleColor()
 
-	setGinWriter(config)
+	// 日志设置
+	if _logger1 == nil {
+		_logger1 = slog.New3("gin")
+	}
+	gin.DefaultErrorWriter = _logger1.WriterLevel(logrus.WarnLevel)
 
-	engine := createEngine()
+	gin.DefaultWriter = io.Discard
+	if !config.DisableAccessLog {
+		if _logger2 == nil {
+			_logger2 = slog.New3("access")
+		}
+		gin.DefaultWriter = _logger2.Writer()
+	}
+
+	// 创建 gin 实例
+	engine := gin.New()
+	engine.NoRoute(sresp.AbortNotFound)
+	engine.NoMethod(sresp.AbortMethodNotAllowed)
+
+	// 设置全局中间件
+	mws := []gin.HandlerFunc{
+		gin.LoggerWithFormatter(formatter),
+		gin.CustomRecovery(recovery),
+	}
+	engine.Use(mws...)
+
+	// 注册路由
 	for _, v := range routes {
 		v(engine)
 	}
@@ -28,62 +58,24 @@ func Run(config Config, routes ...func(engine *gin.Engine)) error {
 	return engine.Run(config.Listen)
 }
 
-func setGinWriter(config Config) {
-	if _accessLogger == nil && !config.DisableAccessLog {
-		_accessLogger = slog.New3(config.AccessLog)
-	}
-	if _accessLogger != nil {
-		gin.DefaultWriter = _accessLogger.Writer()
-	} else {
-		gin.DefaultWriter = io.Discard
-	}
-
-	if _errorLogger == nil {
-		_errorLogger = slog.New3(config.ErrorLog)
-	}
-	gin.DefaultErrorWriter = _errorLogger.Writer()
-}
-
-func createEngine() *gin.Engine {
-	engine := gin.New()
-	engine.NoRoute(sresp.AbortNotFound)
-	engine.NoMethod(sresp.AbortMethodNotAllowed)
-	engine.Use(gin.LoggerWithFormatter(logFormatter))
-	engine.Use(gin.CustomRecovery(recovery))
-	return engine
-}
-
-func logFormatter(param gin.LogFormatterParams) string {
+func formatter(param gin.LogFormatterParams) string {
 	if param.Latency > time.Minute {
 		param.Latency = param.Latency.Truncate(time.Second)
 	}
+
 	return fmt.Sprintf("%3d | %13v | %15s |%-7s %#v\n%s",
-		param.StatusCode,
-		param.Latency,
-		param.ClientIP,
-		param.Method,
-		param.Path,
-		param.ErrorMessage,
-	)
+		param.StatusCode, param.Latency, param.ClientIP, param.Method, param.Path, param.ErrorMessage)
 }
 
 func recovery(ctx *gin.Context, err interface{}) {
-	_errorLogger.Warnf("Server panic, path: %s, error: %v", ctx.FullPath(), err)
+	_logger1.Errorf("Server panic, path: %s, error: %v", ctx.FullPath(), err)
 	sresp.AbortInternalServerError(ctx)
 }
 
-func GetErrorLogger() *logrus.Logger {
-	return _errorLogger
+func GetLogger() *logrus.Logger {
+	return _logger1
 }
 
-func GetAccessLogger() *logrus.Logger {
-	return _accessLogger
-}
-
-func SetErrorLogger(logger *logrus.Logger) {
-	_errorLogger = logger
-}
-
-func SetAccessLogger(logger *logrus.Logger) {
-	_accessLogger = logger
+func SetLogger() *logrus.Logger {
+	return _logger1
 }
