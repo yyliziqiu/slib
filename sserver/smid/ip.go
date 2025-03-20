@@ -15,19 +15,19 @@ import (
 )
 
 var (
-	ErrInvalidIp = errors.New("invalid ip")
+	ErrInvalid = errors.New("invalid ip")
 
 	_whiteList []uint32
 )
 
 func CheckIp(ips []string) gin.HandlerFunc {
 	for _, ip := range ips {
-		iv, err := parseIp(ip)
+		r, err := parseRange(ip)
 		if err != nil {
 			slog.Errorf("Parse ip failed, ip: %s, error: %v.", ip, err)
 			continue
 		}
-		_whiteList = append(_whiteList, iv)
+		_whiteList = append(_whiteList, r)
 	}
 
 	return func(ctx *gin.Context) {
@@ -46,8 +46,8 @@ func CheckIp(ips []string) gin.HandlerFunc {
 			return
 		}
 
-		for _, match := range _whiteList {
-			if iv&match == match {
+		for _, r := range _whiteList {
+			if iv&r == r {
 				return
 			}
 		}
@@ -59,7 +59,7 @@ func CheckIp(ips []string) gin.HandlerFunc {
 func ip2int(ip string) (uint32, error) {
 	ipv4 := net.ParseIP(ip).To4()
 	if len(ipv4) == 0 {
-		return 0, ErrInvalidIp
+		return 0, ErrInvalid
 	}
 
 	i := uint32(0)
@@ -71,26 +71,26 @@ func ip2int(ip string) (uint32, error) {
 	return i, nil
 }
 
-func parseIp(ip string) (uint32, error) {
-	pm := strings.Split(ip, "/")
-	if len(pm) == 0 || len(pm) > 2 {
-		return 0, ErrInvalidIp
+func parseRange(ip string) (uint32, error) {
+	im := strings.Split(ip, "/")
+	if len(im) == 0 || len(im) > 2 {
+		return 0, ErrInvalid
 	}
 
-	mask := 32
-	if len(pm) == 2 {
-		mk, err := strconv.Atoi(pm[1])
+	mk := 32
+	if len(im) == 2 {
+		i, err := strconv.Atoi(im[1])
 		if err != nil {
-			return 0, ErrInvalidIp
+			return 0, ErrInvalid
 		}
-		ip = pm[0]
-		mask = mk
+		ip = im[0]
+		mk = i
 	}
 
-	i, err := ip2int(ip)
+	iv, err := ip2int(ip)
 	if err != nil {
 		return 0, err
 	}
 
-	return i & (uint32(0xffffffff) << (32 - mask)), nil
+	return iv & (uint32(0xffffffff) << (32 - mk)), nil
 }
