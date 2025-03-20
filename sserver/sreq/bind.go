@@ -8,10 +8,6 @@ import (
 	"github.com/yyliziqiu/slib/sserver/sresp"
 )
 
-var (
-	ParametersError = serror.New2(400, "A0100", "parameters error")
-)
-
 func bind(ctx *gin.Context, form interface{}, verbose bool) bool {
 	err := ctx.ShouldBind(form)
 	if err != nil {
@@ -20,9 +16,9 @@ func bind(ctx *gin.Context, form interface{}, verbose bool) bool {
 			logger.Warnf("Bind failed, path: %s, error: %v.", ctx.FullPath(), err)
 		}
 		if verbose {
-			sresp.Error(ctx, ParametersError.Wrap(err))
+			sresp.Error(ctx, serror.ParametersError.Wrap(err))
 		} else {
-			sresp.Error(ctx, ParametersError)
+			sresp.Error(ctx, serror.ParametersError)
 		}
 		return false
 	}

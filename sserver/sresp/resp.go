@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/yyliziqiu/slib/serror"
 )
 
 // ============ Response ============
@@ -33,7 +35,7 @@ func ErrorVerbose(ctx *gin.Context, err error) {
 }
 
 func ErrorString(ctx *gin.Context, message string) {
-	ctx.JSON(http.StatusBadRequest, NewErrorResult(BadRequestError.Code, message))
+	ctx.JSON(http.StatusBadRequest, NewErrorResult(serror.BadRequest.Code, message))
 }
 
 // ============ Abort ============
@@ -55,31 +57,31 @@ func AbortErrorVerbose(ctx *gin.Context, err error) {
 }
 
 func AbortErrorString(ctx *gin.Context, message string) {
-	ctx.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResult(BadRequestError.Code, message))
+	ctx.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResult(serror.BadRequest.Code, message))
 }
 
 // ============ Handle ============
 
 func AbortBadRequest(ctx *gin.Context) {
-	ctx.AbortWithStatusJSON(errorResponse(BadRequestError, false))
+	ctx.AbortWithStatusJSON(errorResponse(serror.BadRequest, false))
 }
 
 func AbortUnauthorized(ctx *gin.Context) {
-	ctx.AbortWithStatusJSON(errorResponse(UnauthorizedError, false))
+	ctx.AbortWithStatusJSON(errorResponse(serror.Unauthorized, false))
 }
 
 func AbortForbidden(ctx *gin.Context) {
-	ctx.AbortWithStatusJSON(errorResponse(ForbiddenError, false))
+	ctx.AbortWithStatusJSON(errorResponse(serror.Forbidden, false))
 }
 
 func AbortNotFound(ctx *gin.Context) {
-	ctx.AbortWithStatusJSON(errorResponse(NotFoundError, false))
+	ctx.AbortWithStatusJSON(errorResponse(serror.NotFound, false))
 }
 
 func AbortMethodNotAllowed(ctx *gin.Context) {
-	ctx.AbortWithStatusJSON(errorResponse(MethodNotAllowedError, false))
+	ctx.AbortWithStatusJSON(errorResponse(serror.MethodNotAllowed, false))
 }
 
 func AbortInternalServerError(ctx *gin.Context) {
-	ctx.AbortWithStatusJSON(errorResponse(InternalServerErrorError, false))
+	ctx.AbortWithStatusJSON(errorResponse(serror.InternalServerError, false))
 }
