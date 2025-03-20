@@ -14,11 +14,15 @@ import (
 	"github.com/yyliziqiu/slib/sserver/sresp"
 )
 
-var _whiteList []uint32
+var (
+	ErrInvalidIp = errors.New("invalid ip")
+
+	_whiteList []uint32
+)
 
 func CheckIp(ips []string) gin.HandlerFunc {
 	for _, ip := range ips {
-		iv, err := ParseIp(ip)
+		iv, err := parseIp(ip)
 		if err != nil {
 			slog.Errorf("Parse ip failed, ip: %s, error: %v.", ip, err)
 			continue
@@ -32,7 +36,7 @@ func CheckIp(ips []string) gin.HandlerFunc {
 
 		ip := ctx.RemoteIP()
 
-		iv, err := Ip2Int(ip)
+		iv, err := ip2int(ip)
 		if err != nil {
 			logger := sserver.GetLogger()
 			if logger != nil {
@@ -42,8 +46,8 @@ func CheckIp(ips []string) gin.HandlerFunc {
 			return
 		}
 
-		for _, wl := range _whiteList {
-			if iv&wl == wl {
+		for _, match := range _whiteList {
+			if iv&match == match {
 				return
 			}
 		}
@@ -52,11 +56,7 @@ func CheckIp(ips []string) gin.HandlerFunc {
 	}
 }
 
-var (
-	ErrInvalidIp = errors.New("invalid ip")
-)
-
-func Ip2Int(ip string) (uint32, error) {
+func ip2int(ip string) (uint32, error) {
 	ipv4 := net.ParseIP(ip).To4()
 	if len(ipv4) == 0 {
 		return 0, ErrInvalidIp
@@ -71,7 +71,7 @@ func Ip2Int(ip string) (uint32, error) {
 	return i, nil
 }
 
-func ParseIp(ip string) (uint32, error) {
+func parseIp(ip string) (uint32, error) {
 	pm := strings.Split(ip, "/")
 	if len(pm) == 0 || len(pm) > 2 {
 		return 0, ErrInvalidIp
@@ -87,7 +87,7 @@ func ParseIp(ip string) (uint32, error) {
 		mask = mk
 	}
 
-	i, err := Ip2Int(ip)
+	i, err := ip2int(ip)
 	if err != nil {
 		return 0, err
 	}
