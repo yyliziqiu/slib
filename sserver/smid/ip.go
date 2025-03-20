@@ -17,7 +17,7 @@ import (
 var (
 	ErrInvalid = errors.New("invalid ip")
 
-	_whiteList []uint32
+	_ranges []uint32
 )
 
 func CheckIp(ips []string) gin.HandlerFunc {
@@ -27,7 +27,7 @@ func CheckIp(ips []string) gin.HandlerFunc {
 			slog.Errorf("Parse ip failed, ip: %s, error: %v.", ip, err)
 			continue
 		}
-		_whiteList = append(_whiteList, r)
+		_ranges = append(_ranges, r)
 	}
 
 	return func(ctx *gin.Context) {
@@ -38,15 +38,14 @@ func CheckIp(ips []string) gin.HandlerFunc {
 
 		iv, err := ip2int(ip)
 		if err != nil {
-			logger := sserver.GetLogger()
-			if logger != nil {
-				logger.Warnf("Parse ip failed, ip: %s, error: %v.", ip, err)
+			if lg := sserver.GetLogger(); lg != nil {
+				lg.Warnf("Parse ip failed, ip: %s, error: %v.", ip, err)
 			}
 			sresp.AbortError(ctx, serror.ForbiddenIp)
 			return
 		}
 
-		for _, r := range _whiteList {
+		for _, r := range _ranges {
 			if iv&r == r {
 				return
 			}
