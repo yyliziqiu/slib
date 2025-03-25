@@ -2,62 +2,48 @@ package stask
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/yyliziqiu/slib/slog"
+	"github.com/yyliziqiu/slib/sutil"
 )
 
 type OnceTask struct {
-	Name string
-	GON  int
-	Cmd  func(ctx context.Context)
+	Name string                    // 名称
+	Cons int                       // 并发数
+	Func func(ctx context.Context) // 方法
 }
 
-func StartOnceTasks(ctx context.Context, tasksFunc func() []OnceTask) {
-	for _, task := range tasksFunc() {
-		if task.GON <= 0 {
+func (t OnceTask) slug() string {
+	if t.Name != "" {
+		return t.Name
+	}
+	return sutil.FuncName(t.Func)
+}
+
+func StartOnceTasks(ctx context.Context, tasks []OnceTask) {
+	for _, task := range tasks {
+		if task.Cons <= 0 {
 			continue
 		}
-		for i := 0; i < task.GON; i++ {
-			go task.Cmd(ctx)
+		for i := 0; i < task.Cons; i++ {
+			go task.Func(ctx)
 		}
-		slog.Infof("Add once task: %s (%d).", task.Name, task.GON)
+		slog.Infof("Add once task: %s (%d).", task.slug(), task.Cons)
 	}
 }
 
-func StartOnceTasksWithConfig(ctx context.Context, tasksFunc func() []OnceTask, configs []OnceTask) {
-	index := make(map[string]OnceTask, len(configs))
-	for _, config := range configs {
-		index[config.Name] = config
-	}
-
-	tasks := tasksFunc()
-	for i := 0; i < len(tasks); i++ {
-		if config, ok := index[tasks[i].Name]; ok {
-			tasks[i].GON = config.GON
-		}
-	}
-
-	StartOnceTasks(ctx, func() []OnceTask { return tasks })
-}
-
-func RunOnceTasksByConfig(ctx context.Context, tasksFunc func() []OnceTask, configs []OnceTask) error {
+func StartOnceTasksWithConfig(ctx context.Context, tasks []OnceTask, configs []OnceTask) {
 	index := make(map[string]OnceTask)
-	for _, task := range tasksFunc() {
-		index[task.Name] = task
-	}
-
-	runnable := make([]OnceTask, 0)
 	for _, config := range configs {
-		task, ok := index[config.Name]
-		if !ok {
-			return fmt.Errorf("not found once task[%s]", config.Name)
-		}
-		task.GON = config.GON
-		runnable = append(runnable, task)
+		index[config.slug()] = config
 	}
 
-	StartOnceTasks(ctx, func() []OnceTask { return runnable })
+	for i := 0; i < len(tasks); i++ {
+		config, ok := index[tasks[i].slug()]
+		if ok {
+			tasks[i].Cons = config.Cons
+		}
+	}
 
-	return nil
+	StartOnceTasks(ctx, tasks)
 }
