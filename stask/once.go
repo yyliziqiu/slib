@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/yyliziqiu/slib/slog"
-	"github.com/yyliziqiu/slib/sutil"
+	"github.com/yyliziqiu/slib/sreflect"
 )
 
 type OnceTask struct {
@@ -17,7 +17,7 @@ func (t OnceTask) slug() string {
 	if t.Name != "" {
 		return t.Name
 	}
-	return sutil.FuncName(t.Func)
+	return sreflect.FuncName(t.Func)
 }
 
 func StartOnceTasks(ctx context.Context, tasks []OnceTask) {
@@ -28,7 +28,7 @@ func StartOnceTasks(ctx context.Context, tasks []OnceTask) {
 		for i := 0; i < task.Cons; i++ {
 			go task.Func(ctx)
 		}
-		slog.Infof("Add once task: %s (%d).", task.slug(), task.Cons)
+		slog.Infof("Add once task: %s (%d)", task.slug(), task.Cons)
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/yyliziqiu/slib/slog"
-	"github.com/yyliziqiu/slib/sutil"
+	"github.com/yyliziqiu/slib/sreflect"
 )
 
 type CronTask struct {
@@ -20,7 +20,7 @@ func (t CronTask) slug() string {
 	if t.Name != "" {
 		return t.Name
 	}
-	return sutil.FuncName(t.Func)
+	return sreflect.FuncName(t.Func)
 }
 
 func RunCronTasks(ctx context.Context, loc *time.Location, tasks []CronTask) {
@@ -38,7 +38,7 @@ func RunCronTasks(ctx context.Context, loc *time.Location, tasks []CronTask) {
 			slog.Errorf("Add cron task failed, name: %v, error: %v.", task.slug(), err)
 			return
 		}
-		slog.Infof("Add cron task: %s.", task.slug())
+		slog.Infof("Add cron task: %s", task.slug())
 	}
 
 	runner.Start()

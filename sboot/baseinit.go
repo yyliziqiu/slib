@@ -9,12 +9,13 @@ import (
 	"github.com/yyliziqiu/slib/skafka"
 	"github.com/yyliziqiu/slib/slog"
 	"github.com/yyliziqiu/slib/sredis"
+	"github.com/yyliziqiu/slib/sreflect"
 )
 
 func BaseInit(config any) InitFunc {
 	return func() (err error) {
 		// db
-		if val, ok := fieldValue(config, "Db"); ok {
+		if val, ok := sreflect.FieldValue(config, "Db"); ok {
 			c, ok2 := val.(sdb.Config)
 			if ok2 && c.Dsn != "" {
 				slog.Info("Init database.")
@@ -24,7 +25,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := fieldValue(config, "DbList"); ok {
+		if val, ok := sreflect.FieldValue(config, "DbList"); ok {
 			c, ok2 := val.([]sdb.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init database list.")
@@ -36,7 +37,7 @@ func BaseInit(config any) InitFunc {
 		}
 
 		// es
-		if val, ok := fieldValue(config, "Es"); ok {
+		if val, ok := sreflect.FieldValue(config, "Es"); ok {
 			c, ok2 := val.(ses.Config)
 			if ok2 && len(c.Hosts) > 0 {
 				slog.Info("Init es.")
@@ -46,7 +47,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := fieldValue(config, "EsList"); ok {
+		if val, ok := sreflect.FieldValue(config, "EsList"); ok {
 			c, ok2 := val.([]ses.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init es list.")
@@ -58,7 +59,7 @@ func BaseInit(config any) InitFunc {
 		}
 
 		// redis
-		if val, ok := fieldValue(config, "Redis"); ok {
+		if val, ok := sreflect.FieldValue(config, "Redis"); ok {
 			c, ok2 := val.(sredis.Config)
 			if ok2 && (c.Addr != "" || len(c.Addrs) > 0) {
 				slog.Info("Init redis.")
@@ -68,7 +69,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := fieldValue(config, "RedisList"); ok {
+		if val, ok := sreflect.FieldValue(config, "RedisList"); ok {
 			c, ok2 := val.([]sredis.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init redis list.")
@@ -80,7 +81,7 @@ func BaseInit(config any) InitFunc {
 		}
 
 		// kafka
-		if val, ok := fieldValue(config, "Kafka"); ok {
+		if val, ok := sreflect.FieldValue(config, "Kafka"); ok {
 			c, ok2 := val.(skafka.Config)
 			if ok2 && c.Server.BootstrapServers != "" {
 				slog.Info("Init kafka.")
@@ -90,7 +91,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := fieldValue(config, "KafkaList"); ok {
+		if val, ok := sreflect.FieldValue(config, "KafkaList"); ok {
 			c, ok2 := val.([]skafka.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init kafka list.")

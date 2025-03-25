@@ -1,4 +1,4 @@
-package sutil
+package sreflect
 
 import (
 	"reflect"
