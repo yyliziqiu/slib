@@ -52,13 +52,21 @@ func Migrate(ctx context.Context, migration Migration) (err error) {
 
 func migrateTables(db *gorm.DB, tables []schema.Tabler) error {
 	for _, table := range tables {
-		tab := table.TableName()
-		err := db.Table(tab).Migrator().AutoMigrate(&table)
-		if err != nil {
-			return fmt.Errorf("create table %s failed [%v]", tab, err)
+		name := table.TableName()
+
+		has := db.Table(name).Migrator().HasTable(&table)
+		if has {
+			continue
 		}
-		slog.Infof("Create table succeed, table: %s.", tab)
+
+		err := db.Table(name).Migrator().CreateTable(&table)
+		if err != nil {
+			return fmt.Errorf("create table %s failed [%v]", name, err)
+		}
+
+		slog.Infof("Migration create table: %s", name)
 	}
+
 	return nil
 }
 
