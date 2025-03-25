@@ -78,7 +78,7 @@ func (app *App) InitConfig() (err error) {
 
 	// 初始化日志
 	logConfig := slog.Config{Console: true}
-	if logConfig1, ok1 := sreflect.FieldValue(app.ConfigRoot, "Log"); ok1 {
+	if logConfig1, ok1 := sreflect.ValueOf(app.ConfigRoot, "Log"); ok1 {
 		logConfig2, ok2 := logConfig1.(slog.Config)
 		if ok2 {
 			logConfig = logConfig2
@@ -133,7 +133,7 @@ func (app *App) Run() (err error) {
 
 	cancel()
 
-	if exitWait, ok := sreflect.FieldValue(app.ConfigRoot, "ExitWait"); ok {
+	if exitWait, ok := sreflect.ValueOf(app.ConfigRoot, "ExitWait"); ok {
 		exitWait2, ok2 := exitWait.(time.Duration)
 		if ok2 && exitWait2 > 0 {
 			time.Sleep(exitWait2)

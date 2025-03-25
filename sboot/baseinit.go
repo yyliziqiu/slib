@@ -15,7 +15,7 @@ import (
 func BaseInit(config any) InitFunc {
 	return func() (err error) {
 		// db
-		if val, ok := sreflect.FieldValue(config, "Db"); ok {
+		if val, ok := sreflect.ValueOf(config, "Db"); ok {
 			c, ok2 := val.(sdb.Config)
 			if ok2 && c.Dsn != "" {
 				slog.Info("Init database.")
@@ -25,7 +25,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := sreflect.FieldValue(config, "DbList"); ok {
+		if val, ok := sreflect.ValueOf(config, "DbList"); ok {
 			c, ok2 := val.([]sdb.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init database list.")
@@ -37,7 +37,7 @@ func BaseInit(config any) InitFunc {
 		}
 
 		// es
-		if val, ok := sreflect.FieldValue(config, "Es"); ok {
+		if val, ok := sreflect.ValueOf(config, "Es"); ok {
 			c, ok2 := val.(ses.Config)
 			if ok2 && len(c.Hosts) > 0 {
 				slog.Info("Init es.")
@@ -47,7 +47,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := sreflect.FieldValue(config, "EsList"); ok {
+		if val, ok := sreflect.ValueOf(config, "EsList"); ok {
 			c, ok2 := val.([]ses.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init es list.")
@@ -59,7 +59,7 @@ func BaseInit(config any) InitFunc {
 		}
 
 		// redis
-		if val, ok := sreflect.FieldValue(config, "Redis"); ok {
+		if val, ok := sreflect.ValueOf(config, "Redis"); ok {
 			c, ok2 := val.(sredis.Config)
 			if ok2 && (c.Addr != "" || len(c.Addrs) > 0) {
 				slog.Info("Init redis.")
@@ -69,7 +69,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := sreflect.FieldValue(config, "RedisList"); ok {
+		if val, ok := sreflect.ValueOf(config, "RedisList"); ok {
 			c, ok2 := val.([]sredis.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init redis list.")
@@ -81,7 +81,7 @@ func BaseInit(config any) InitFunc {
 		}
 
 		// kafka
-		if val, ok := sreflect.FieldValue(config, "Kafka"); ok {
+		if val, ok := sreflect.ValueOf(config, "Kafka"); ok {
 			c, ok2 := val.(skafka.Config)
 			if ok2 && c.Server.BootstrapServers != "" {
 				slog.Info("Init kafka.")
@@ -91,7 +91,7 @@ func BaseInit(config any) InitFunc {
 				}
 			}
 		}
-		if val, ok := sreflect.FieldValue(config, "KafkaList"); ok {
+		if val, ok := sreflect.ValueOf(config, "KafkaList"); ok {
 			c, ok2 := val.([]skafka.Config)
 			if ok2 && len(c) > 0 {
 				slog.Info("Init kafka list.")

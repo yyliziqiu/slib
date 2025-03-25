@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/yyliziqiu/slib/sfile"
+	"github.com/yyliziqiu/slib/sreflect"
 )
 
 func Save(filename string, rows [][]string) error {
@@ -46,9 +47,9 @@ func SaveModels(filename string, models []any) error {
 		return nil
 	}
 	rows := make([][]string, 0, len(models)+1)
-	rows = append(rows, structFields(models[0]))
+	rows = append(rows, sreflect.FieldsOf(models[0]))
 	for _, model := range models {
-		rows = append(rows, structValues(model))
+		rows = append(rows, sreflect.ValuesOf(model))
 	}
 	return Save(filename, rows)
 }
