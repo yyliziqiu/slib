@@ -23,7 +23,13 @@ func handlerName(handler Handler) string {
 	if ok {
 		return i.Name()
 	}
-	return reflect.TypeOf(handler).Name()
+
+	typ := reflect.TypeOf(handler)
+	if typ.Kind() == reflect.Pointer {
+		typ = typ.Elem()
+	}
+
+	return typ.Name()
 }
 
 type HandlerInterval interface {
