@@ -47,3 +47,11 @@ func ProduceModel(producer *kafka.Producer, topic string, model interface{}) err
 	}
 	return Produce(producer, topic, message)
 }
+
+func Push(topic string, message []byte) error {
+	return Produce(GetProducerDefault(), topic, message)
+}
+
+func PushModel(topic string, model interface{}) error {
+	return ProduceModel(GetProducerDefault(), topic, model)
+}

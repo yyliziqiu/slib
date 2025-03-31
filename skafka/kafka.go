@@ -16,12 +16,12 @@ func Init(configs ...Config) error {
 	_cConfigs = make(map[string]ConsumerConfig, 16)
 	for _, kc := range configs {
 		for _, pc := range kc.Producers {
-			pc.Server = kc.Server
+			pc.server = kc.Server
 			dc := pc.Default()
 			_pConfigs[dc.Id] = dc
 		}
 		for _, cc := range kc.Consumers {
-			cc.Server = kc.Server
+			cc.server = kc.Server
 			dc := cc.Default()
 			_cConfigs[dc.Id] = dc
 		}

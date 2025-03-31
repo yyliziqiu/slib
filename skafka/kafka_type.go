@@ -49,16 +49,17 @@ func (c ServerConfig) Join(m kafka.ConfigMap) *kafka.ConfigMap {
 }
 
 type ProducerConfig struct {
-	Server                ServerConfig
+	server ServerConfig
+
 	Id                    string                     // optional
-	Topics                []string                   // must
+	Topics                []string                   // optional
 	RequestRequiredAcks   int                        // optional
 	DeliveredCallback     func(kafka.TopicPartition) `json:"-"` // optional
 	DeliverFailedCallback func(kafka.TopicPartition) `json:"-"` // optional
 }
 
 func (c ProducerConfig) Default() ProducerConfig {
-	c.Server.Default()
+	c.server.Default()
 
 	if c.Id == "" {
 		c.Id = DefaultId
@@ -72,14 +73,15 @@ func (c ProducerConfig) Map() *kafka.ConfigMap {
 		"request.required.acks": c.RequestRequiredAcks,
 	}
 
-	return c.Server.Join(m)
+	return c.server.Join(m)
 }
 
 type ConsumerConfig struct {
-	Server                 ServerConfig
+	server ServerConfig
+
 	Id                     string   // optional
+	Group                  string   // must
 	Topics                 []string // must
-	GroupId                string   // must
 	AutoOffsetReset        string   // optional
 	MaxPollIntervalMS      int      // optional
 	SessionTimeoutMS       int      // optional
@@ -89,7 +91,7 @@ type ConsumerConfig struct {
 }
 
 func (c ConsumerConfig) Default() ConsumerConfig {
-	c.Server.Default()
+	c.server.Default()
 
 	if c.Id == "" {
 		c.Id = DefaultId
@@ -124,7 +126,7 @@ func (c ConsumerConfig) Default() ConsumerConfig {
 
 func (c ConsumerConfig) Map() *kafka.ConfigMap {
 	m := kafka.ConfigMap{
-		"group.id":                  c.GroupId,
+		"group.id":                  c.Group,
 		"auto.offset.reset":         c.AutoOffsetReset,
 		"max.poll.interval.ms":      c.MaxPollIntervalMS,
 		"session.timeout.ms":        c.SessionTimeoutMS,
@@ -133,5 +135,5 @@ func (c ConsumerConfig) Map() *kafka.ConfigMap {
 		"max.partition.fetch.bytes": c.MaxPartitionFetchBytes,
 	}
 
-	return c.Server.Join(m)
+	return c.server.Join(m)
 }
