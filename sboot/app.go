@@ -69,22 +69,21 @@ func (app *App) InitConfig() (err error) {
 	}
 
 	// 为配置设置默认值
-	default0, ok := app.ConfigRoot.(Default)
+	def, ok := app.ConfigRoot.(Default)
 	if ok {
-		default0.Default()
+		def.Default()
 	}
 
 	log.Println("Init log.")
 
 	// 初始化日志
-	logConfig := slog.Config{Console: true}
-	if logConfig1, ok1 := sreflect.ValueOf(app.ConfigRoot, "Log"); ok1 {
-		logConfig2, ok2 := logConfig1.(slog.Config)
-		if ok2 {
-			logConfig = logConfig2
+	lc := slog.Config{Console: true}
+	if lc1, ok1 := sreflect.ValueOf(app.ConfigRoot, "Log"); ok1 {
+		if lc2, ok2 := lc1.(slog.Config); ok2 {
+			lc = lc2
 		}
 	}
-	err = slog.Init(logConfig)
+	err = slog.Init(lc)
 	if err != nil {
 		return fmt.Errorf("init log failed [%v]", err)
 	}
