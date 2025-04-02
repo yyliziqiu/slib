@@ -98,7 +98,6 @@ func (app *App) InitModule() (err error) {
 	}
 	app.hasInitModule = true
 
-	slog.Info("Init modules.")
 	err = app.InitFuncs().Init()
 	if err != nil {
 		slog.Errorf("Init modules failed, error: %v", err)
@@ -117,7 +116,6 @@ func (app *App) Run() (err error) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	slog.Info("Boot modules.")
 	err = app.BootFuncs().Boot(ctx)
 	if err != nil {
 		slog.Errorf("Boot modules failed, error: %v", err)
