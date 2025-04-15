@@ -5,7 +5,7 @@ import (
 )
 
 type User struct {
-	Name string
+	Name string `csv:"姓名"`
 	Age  int
 }
 

@@ -55,11 +55,26 @@ func SaveModels(filename string, models any) error {
 		return nil
 	}
 
+	head := v.Index(0).Interface()
+
 	rows := make([][]string, 0, size+1)
-	rows = append(rows, sreflect.FieldsOf(v.Index(0).Interface()))
+	rows = append(rows, titles(head))
 	for i := 0; i < size; i++ {
 		rows = append(rows, sreflect.ValuesOf(v.Index(i).Interface()))
 	}
 
 	return Save(filename, rows)
+}
+
+func titles(s any) []string {
+	mt := reflect.TypeOf(s)
+	var fields []string
+	for i := 0; i < mt.NumField(); i++ {
+		title := mt.Field(i).Tag.Get("csv")
+		if title == "" {
+			title = mt.Field(i).Name
+		}
+		fields = append(fields, title)
+	}
+	return fields
 }
