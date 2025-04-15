@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/yyliziqiu/slib/sfile"
@@ -42,14 +43,23 @@ func Save(filename string, rows [][]string) error {
 	return nil
 }
 
-func SaveModels(filename string, models []any) error {
-	if len(models) == 0 {
+func SaveModels(filename string, models any) error {
+	v := reflect.ValueOf(models)
+
+	if v.Kind() != reflect.Slice && v.Kind() != reflect.Array {
+		return fmt.Errorf("modeles type must be slice or array")
+	}
+
+	size := v.Len()
+	if size == 0 {
 		return nil
 	}
-	rows := make([][]string, 0, len(models)+1)
-	rows = append(rows, sreflect.FieldsOf(models[0]))
-	for _, model := range models {
-		rows = append(rows, sreflect.ValuesOf(model))
+
+	rows := make([][]string, 0, size+1)
+	rows = append(rows, sreflect.FieldsOf(v.Index(0).Interface()))
+	for i := 0; i < size; i++ {
+		rows = append(rows, sreflect.ValuesOf(v.Index(i).Interface()))
 	}
+
 	return Save(filename, rows)
 }
