@@ -1,6 +1,7 @@
 package sresp
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/yyliziqiu/slib/serror"
@@ -9,6 +10,10 @@ import (
 type ErrorResult struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+}
+
+func (e ErrorResult) Error() string {
+	return fmt.Sprintf("#%s %s", e.Code, e.Message)
 }
 
 func NewErrorResult(code string, message string) ErrorResult {
