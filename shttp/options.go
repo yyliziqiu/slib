@@ -41,6 +41,12 @@ func Format(format string) Option {
 	}
 }
 
+func Prefix(prefix string) Option {
+	return func(cli *Client) {
+		cli.prefix = prefix
+	}
+}
+
 func Error(error error) Option {
 	return func(cli *Client) {
 		cli.error = error
@@ -53,9 +59,10 @@ func Dumps(enabled bool) Option {
 	}
 }
 
+// BaseUrl deprecate
 func BaseUrl(baseUrl string) Option {
 	return func(cli *Client) {
-		cli.baseUrl = baseUrl
+		cli.prefix = baseUrl
 	}
 }
 

@@ -29,9 +29,9 @@ type Client struct {
 	client        *http.Client
 	logger        *logrus.Logger                 // 如果为 nil，则不记录日志
 	format        string                         // 响应报文格式
+	prefix        string                         // URL 前缀
 	error         error                          // 响应失败时的 JSON 结构。在响应成功和失败时 JSON 结构不一致时设置，不能是指针
 	dumps         bool                           // 将 HTTP 报文打印到控制台
-	baseUrl       string                         // URL 前缀
 	logLength     int                            // 最大日志长度
 	logEscape     bool                           // 是否转换日志中的特殊字符
 	requestBefore func(req *http.Request)        // 在发送请求前调用
@@ -47,9 +47,9 @@ func New(options ...Option) *Client {
 		client:        cli,
 		logger:        nil,
 		format:        FormatJson,
+		prefix:        "",
 		error:         nil,
 		dumps:         false,
-		baseUrl:       "",
 		logLength:     1024,
 		logEscape:     false,
 		requestBefore: nil,
@@ -86,18 +86,18 @@ func (cli *Client) get(method string, path string, query url.Values, header http
 
 func (cli *Client) newRequest(method string, path string, query url.Values, header http.Header, body io.Reader) (*http.Request, error) {
 	if !strings.HasPrefix(path, "http://") && !strings.HasPrefix(path, "https://") {
-		path = JoinUrl(cli.baseUrl, path)
+		path = JoinUrl(cli.prefix, path)
 	}
 
 	url2, err := AppendQuery(path, query)
 	if err != nil {
-		cli.logWarn("Append query failed, Url: %s, query: %s, error: %v.", url2, query.Encode(), err)
+		cli.logWarn("Append query failed, url: %s, query: %s, error: %v.", url2, query.Encode(), err)
 		return nil, fmt.Errorf("append query error [%v]", err)
 	}
 
 	req, err := http.NewRequest(method, url2, body)
 	if err != nil {
-		cli.logWarn("New request failed, Url: %s, error: %v.", url2, err)
+		cli.logWarn("New request failed, url: %s, error: %v.", url2, err)
 		return nil, fmt.Errorf("new request error [%v]", err)
 	}
 
