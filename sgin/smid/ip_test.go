@@ -18,7 +18,7 @@ func Test_ip2int(t *testing.T) {
 func Test_parseRange(t *testing.T) {
 	ip := "192.168.32.21/24"
 
-	iv, err := parseRange(ip)
+	iv, err := parseIpRange(ip)
 	if err != nil {
 		t.Error(err)
 	} else {
@@ -31,7 +31,7 @@ func Test_CheckIp(t *testing.T) {
 	rg := "192.168.32.0/24"
 
 	iv, _ := ip2int(ip)
-	ir, _ := parseRange(rg)
+	ir, _ := parseIpRange(rg)
 
 	t.Log(iv&ir == ir)
 }

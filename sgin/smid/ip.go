@@ -9,9 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/yyliziqiu/slib/serror"
+	"github.com/yyliziqiu/slib/sgin"
+	"github.com/yyliziqiu/slib/sgin/sresp"
 	"github.com/yyliziqiu/slib/slog"
-	"github.com/yyliziqiu/slib/sserver"
-	"github.com/yyliziqiu/slib/sserver/sresp"
 )
 
 var ErrInvalidIpFormat = errors.New("invalid ip format")
@@ -20,7 +20,7 @@ var _ipRanges []uint32
 
 func CheckIp(ips []string) gin.HandlerFunc {
 	for _, ip := range ips {
-		r, err := parseRange(ip)
+		r, err := parseIpRange(ip)
 		if err != nil {
 			slog.Errorf("Parse ip failed, ip: %s, error: %v.", ip, err)
 			continue
@@ -36,7 +36,7 @@ func CheckIp(ips []string) gin.HandlerFunc {
 
 		iv, err := ip2int(ip)
 		if err != nil {
-			if logger := sserver.GetLogger(); logger != nil {
+			if logger := sgin.GetLogger(); logger != nil {
 				logger.Warnf("Parse ip failed, ip: %s, error: %v.", ip, err)
 			}
 			sresp.AbortError(ctx, serror.ForbiddenIp)
@@ -68,7 +68,7 @@ func ip2int(ip string) (uint32, error) {
 	return i, nil
 }
 
-func parseRange(ip string) (uint32, error) {
+func parseIpRange(ip string) (uint32, error) {
 	im := strings.Split(ip, "/")
 	if len(im) == 0 || len(im) > 2 {
 		return 0, ErrInvalidIpFormat

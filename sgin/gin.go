@@ -1,4 +1,4 @@
-package sserver
+package sgin
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
+	"github.com/yyliziqiu/slib/sgin/sresp"
 	"github.com/yyliziqiu/slib/slog"
-	"github.com/yyliziqiu/slib/sserver/sresp"
 )
 
 var (
@@ -24,18 +24,13 @@ func Run(config Config, routes ...func(engine *gin.Engine)) error {
 	gin.SetMode(gin.ReleaseMode)
 	gin.DisableConsoleColor()
 
-	// 日志设置
-	if _logger1 == nil {
-		_logger1 = slog.New3("gin")
-	}
-	gin.DefaultErrorWriter = _logger1.WriterLevel(logrus.WarnLevel)
+	// 错误日志设置
+	gin.DefaultErrorWriter = logger1().WriterLevel(logrus.WarnLevel)
 
+	// 访问日志设置
 	gin.DefaultWriter = io.Discard
 	if !config.DisableAccessLog {
-		if _logger2 == nil {
-			_logger2 = slog.New3("gin-access")
-		}
-		gin.DefaultWriter = _logger2.Writer()
+		gin.DefaultWriter = logger2().Writer()
 	}
 
 	// 创建 gin 实例
@@ -58,6 +53,20 @@ func Run(config Config, routes ...func(engine *gin.Engine)) error {
 	return engine.Run(config.Listen)
 }
 
+func logger1() *logrus.Logger {
+	if _logger1 == nil {
+		_logger1 = slog.New3("gin")
+	}
+	return _logger1
+}
+
+func logger2() *logrus.Logger {
+	if _logger2 == nil {
+		_logger2 = slog.New3("gin-access")
+	}
+	return _logger2
+}
+
 func formatter(param gin.LogFormatterParams) string {
 	if param.Latency > time.Minute {
 		param.Latency = param.Latency.Truncate(time.Second)
@@ -73,7 +82,7 @@ func recovery(ctx *gin.Context, err interface{}) {
 }
 
 func GetLogger() *logrus.Logger {
-	return _logger1
+	return logger1()
 }
 
 func SetLogger(logger *logrus.Logger) {

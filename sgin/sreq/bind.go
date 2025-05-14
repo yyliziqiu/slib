@@ -4,14 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/yyliziqiu/slib/serror"
-	"github.com/yyliziqiu/slib/sserver"
-	"github.com/yyliziqiu/slib/sserver/sresp"
+	"github.com/yyliziqiu/slib/sgin"
+
+	"github.com/yyliziqiu/slib/sgin/sresp"
 )
 
 func bind(ctx *gin.Context, form interface{}, verbose bool) bool {
 	err := ctx.ShouldBind(form)
 	if err != nil {
-		if logger := sserver.GetLogger(); logger != nil {
+		if logger := sgin.GetLogger(); logger != nil {
 			logger.Warnf("Bind failed, path: %s, error: %v.", ctx.FullPath(), err)
 		}
 		if verbose {

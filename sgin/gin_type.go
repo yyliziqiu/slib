@@ -1,4 +1,4 @@
-package sserver
+package sgin
 
 type Config struct {
 	Listen           string

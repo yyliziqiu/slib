@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/yyliziqiu/slib/sserver/sresp"
+	"github.com/yyliziqiu/slib/sgin/sresp"
 )
 
 /*
