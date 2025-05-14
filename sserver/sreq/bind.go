@@ -11,8 +11,7 @@ import (
 func bind(ctx *gin.Context, form interface{}, verbose bool) bool {
 	err := ctx.ShouldBind(form)
 	if err != nil {
-		logger := sserver.GetLogger()
-		if logger != nil {
+		if logger := sserver.GetLogger(); logger != nil {
 			logger.Warnf("Bind failed, path: %s, error: %v.", ctx.FullPath(), err)
 		}
 		if verbose {

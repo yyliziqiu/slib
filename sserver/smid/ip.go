@@ -14,11 +14,9 @@ import (
 	"github.com/yyliziqiu/slib/sserver/sresp"
 )
 
-var (
-	ErrInvalid = errors.New("invalid ip")
+var ErrInvalidIpFormat = errors.New("invalid ip format")
 
-	_ranges []uint32
-)
+var _ipRanges []uint32
 
 func CheckIp(ips []string) gin.HandlerFunc {
 	for _, ip := range ips {
@@ -27,7 +25,7 @@ func CheckIp(ips []string) gin.HandlerFunc {
 			slog.Errorf("Parse ip failed, ip: %s, error: %v.", ip, err)
 			continue
 		}
-		_ranges = append(_ranges, r)
+		_ipRanges = append(_ipRanges, r)
 	}
 
 	return func(ctx *gin.Context) {
@@ -38,14 +36,14 @@ func CheckIp(ips []string) gin.HandlerFunc {
 
 		iv, err := ip2int(ip)
 		if err != nil {
-			if lg := sserver.GetLogger(); lg != nil {
-				lg.Warnf("Parse ip failed, ip: %s, error: %v.", ip, err)
+			if logger := sserver.GetLogger(); logger != nil {
+				logger.Warnf("Parse ip failed, ip: %s, error: %v.", ip, err)
 			}
 			sresp.AbortError(ctx, serror.ForbiddenIp)
 			return
 		}
 
-		for _, r := range _ranges {
+		for _, r := range _ipRanges {
 			if iv&r == r {
 				return
 			}
@@ -58,7 +56,7 @@ func CheckIp(ips []string) gin.HandlerFunc {
 func ip2int(ip string) (uint32, error) {
 	ipv4 := net.ParseIP(ip).To4()
 	if len(ipv4) == 0 {
-		return 0, ErrInvalid
+		return 0, ErrInvalidIpFormat
 	}
 
 	i := uint32(0)
@@ -73,14 +71,14 @@ func ip2int(ip string) (uint32, error) {
 func parseRange(ip string) (uint32, error) {
 	im := strings.Split(ip, "/")
 	if len(im) == 0 || len(im) > 2 {
-		return 0, ErrInvalid
+		return 0, ErrInvalidIpFormat
 	}
 
 	mk := 32
 	if len(im) == 2 {
 		i, err := strconv.Atoi(im[1])
 		if err != nil {
-			return 0, ErrInvalid
+			return 0, ErrInvalidIpFormat
 		}
 		ip = im[0]
 		mk = i

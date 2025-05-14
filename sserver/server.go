@@ -33,7 +33,7 @@ func Run(config Config, routes ...func(engine *gin.Engine)) error {
 	gin.DefaultWriter = io.Discard
 	if !config.DisableAccessLog {
 		if _logger2 == nil {
-			_logger2 = slog.New3("access")
+			_logger2 = slog.New3("gin-access")
 		}
 		gin.DefaultWriter = _logger2.Writer()
 	}
