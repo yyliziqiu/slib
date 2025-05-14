@@ -119,7 +119,7 @@ func (cli *Client) doRequest(req *http.Request) (*http.Response, error) {
 
 	res, err := cli.client.Do(req)
 	if err != nil {
-		cli.logWarn("Do request failed, Url: %s, error: %v.", req.URL, err)
+		cli.logWarn("Do request failed, url: %s, error: %v.", req.URL, err)
 		return nil, err
 	}
 
