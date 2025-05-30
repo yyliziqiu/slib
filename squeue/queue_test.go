@@ -28,9 +28,15 @@ func TestLen(t *testing.T) {
 	t.Log("Q2 len: ", q2.len())
 }
 
-func TestPush(t *testing.T) {
-	q1.push(8)
-	q1.push(9)
-	q1.push(10)
+func TestPushAndPop(t *testing.T) {
+	items := []int{7, 8, 9, 10}
+	for _, i := range items {
+		q1.Push(i)
+	}
+	fmt.Println(q1.list)
+
+	for !q1.empty() {
+		q1.pop()
+	}
 	fmt.Println(q1.list)
 }
