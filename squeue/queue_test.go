@@ -40,3 +40,22 @@ func TestPushAndPop(t *testing.T) {
 	}
 	fmt.Println(q1.list)
 }
+
+func TestPushAndPop2(t *testing.T) {
+	items := []int{7, 8, 9, 10}
+	for _, i := range items {
+		q2.Push(i)
+	}
+	fmt.Println(q2.list)
+
+	for !q2.empty() {
+		q2.pop()
+	}
+	fmt.Println(q2.list)
+
+	items = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	for _, i := range items {
+		q2.Push(i)
+	}
+	fmt.Println(q2.list)
+}
