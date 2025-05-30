@@ -41,14 +41,13 @@ func (q *Queue) cap() int {
 
 // 获取队列长度
 func (q *Queue) len() int {
-	switch {
-	case q.tail > q.head:
+	if q.tail > q.head {
 		return q.tail - q.head
-	case q.tail < q.head:
-		return q.tail + q.cap() - q.head
-	default:
-		return 0
 	}
+	if q.tail < q.head {
+		return q.tail + q.cap() - q.head
+	}
+	return 0
 }
 
 // 获取指定下标的前一个下标
