@@ -23,10 +23,12 @@ var q2 = &Queue{
 	tail:  1,
 }
 
-func TestQueue(t *testing.T) {
+func TestLen(t *testing.T) {
 	t.Log("Q1 len: ", q1.len())
 	t.Log("Q2 len: ", q2.len())
+}
 
+func TestPush(t *testing.T) {
 	q1.push(8)
 	q1.push(9)
 	q1.push(10)

@@ -84,14 +84,19 @@ func (q *Queue) tailNext() int {
 func (q *Queue) push(item any) {
 	// 若队列已满，则扩容
 	if q.tailNext() == q.head {
-		q.print("grow before")
+		q.print("grow start")
 		q.grow()
-		q.print("grow after")
+		q.print("grow done")
 	}
 
 	// 添加元素
 	q.list[q.tail] = item
 	q.tail = q.tailNext()
+
+	// 打印 debug 信息
+	if q.debug {
+		q.print(fmt.Sprintf("push %v", item))
+	}
 }
 
 func (q *Queue) print(tag string) {
@@ -101,7 +106,7 @@ func (q *Queue) print(tag string) {
 }
 
 func (q *Queue) status() string {
-	return fmt.Sprintf("head: %-4d, tail: %-4d, len: %-4d, cap: %-4d", q.head, q.tail, q.len(), q.cap())
+	return fmt.Sprintf("head %-2d, tail %-2d, len %-2d, cap %-2d", q.head, q.tail, q.len(), q.cap())
 }
 
 func (q *Queue) grow() {
@@ -128,6 +133,11 @@ func (q *Queue) pop() (any, bool) {
 	item := q.list[q.head]
 	q.list[q.head] = nil
 	q.head = q.headNext()
+
+	// 打印 debug 信息
+	if q.debug {
+		q.print(fmt.Sprintf("pop  %v", item))
+	}
 
 	return item, true
 }
