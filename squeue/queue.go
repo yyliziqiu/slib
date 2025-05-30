@@ -84,8 +84,9 @@ func (q *Queue) tailNext() int {
 func (q *Queue) push(item any) {
 	// 若队列已满，则扩容
 	if q.tailNext() == q.head {
-		q.print("grow")
+		q.print("grow before")
 		q.grow()
+		q.print("grow after")
 	}
 
 	// 添加元素
@@ -95,7 +96,7 @@ func (q *Queue) push(item any) {
 
 func (q *Queue) print(tag string) {
 	if q.debug {
-		fmt.Printf("%-10s => %s.\n", tag, q.status())
+		fmt.Printf("[%s] %s\n", q.status(), tag)
 	}
 }
 
