@@ -8,7 +8,6 @@ import (
 
 var (
 	EmptyError           = errors.New("empty")
-	ItemNotFoundError    = errors.New("item not found")
 	IndexOutOfRangeError = errors.New("index out of range")
 )
 
