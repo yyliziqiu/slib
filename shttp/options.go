@@ -1,6 +1,7 @@
 package shttp
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -26,6 +27,25 @@ func Cookie(o *cookiejar.Options) Option {
 func Timeout(timeout time.Duration) Option {
 	return func(cli *Client) {
 		cli.client.Timeout = timeout
+	}
+}
+
+func DisableRedirect() Option {
+	return func(cli *Client) {
+		cli.client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	}
+}
+
+func LimitRedirect(n int) Option {
+	return func(cli *Client) {
+		cli.client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			if len(via) >= n {
+				return fmt.Errorf("stopped after %d redirects", n)
+			}
+			return nil
+		}
 	}
 }
 

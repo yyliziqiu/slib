@@ -3,6 +3,7 @@ package shttp
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -167,6 +168,8 @@ func (cli *Client) handleJsonResponse(statusCode int, body []byte, out interface
 			}
 		}
 		return nil
+	} else if statusCode/100 == 3 {
+		return errors.New("this is a redirect response")
 	} else {
 		if cli.error != nil {
 			ret := reflect.New(reflect.TypeOf(cli.error)).Interface()
@@ -236,6 +239,15 @@ func (cli *Client) post(method string, path string, query url.Values, header htt
 }
 
 // Get http get
+//
+// 若响应失败时 http 状态码为200：
+//  1. 则 out 需要实现 JsonResponse 接口来判断响应是否成功
+//     1-1. 若要自定义错误内容，则 out 需要实现 error 接口，否则错误信息将返回整个响应内容
+//
+// 若响应失败时 http 状态码为4**或5**：
+//  1. 若响应成功和失败时响应的结构一至
+//     1-1. 若要自定义错误内容，则 out 需要实现 error 接口，否则错误信息将返回整个响应内容
+//  2. 若响应成功和失败时响应的结构不一致，则需要设置 Error(err error) 选项，err 为响应失败时的结构，注意 err 不能是指针
 func (cli *Client) Get(path string, query url.Values, header http.Header, out interface{}) error {
 	return cli.get(http.MethodGet, path, query, header, out)
 }
