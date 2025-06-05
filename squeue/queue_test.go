@@ -137,3 +137,26 @@ func TestPops(t *testing.T) {
 	echo(q3.list)
 	echo(result)
 }
+
+func TestSlideN(t *testing.T) {
+	items := []int{8, 9, 10, 11, 12}
+	for _, i := range items {
+		q1.SlideN(i, 3)
+	}
+	echo(q1.list)
+
+	items = []int{4, 5, 6, 7, 8, 9}
+	for _, i := range items {
+		q2.SlideN(i, 5)
+	}
+	echo(q2.list)
+}
+
+func TestSlide(t *testing.T) {
+	item, removed := q1.Slide(8, func(item any) bool {
+		n := item.(int)
+		return n <= 4
+	})
+	echo(item, removed)
+	echo(q1.list)
+}

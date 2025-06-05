@@ -144,9 +144,15 @@ func (q *Queue) Slide(item any, remove Remove) (removed any, ok bool) {
 	q.push(item)
 
 	// 将队列控制在指定条件内
-	q.print("slide")
-	for !q.Empty() && remove(q.list[q.head]) {
+	slide := false
+	for !q.empty() && remove(q.list[q.head]) {
 		removed, ok = q.pop()
+		slide = true
+	}
+
+	// 发生了滑动，打印日志
+	if slide {
+		q.print("slide")
 	}
 
 	return
