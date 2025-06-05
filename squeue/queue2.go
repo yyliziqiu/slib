@@ -87,7 +87,7 @@ func (q *Queue) Pop() (any, bool) {
 // Filter 元素符合条件返回 true，否则返回 false
 type Filter func(item any) bool
 
-// Pops 从队列头弹出多个元素
+// Pops 从队列头弹出多个元素，遇到第一个不符合条件的元素停止弹出
 func (q *Queue) Pops(filter Filter) []any {
 	q.mu.Lock()
 	defer q.mu.Unlock()
