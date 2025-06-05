@@ -174,3 +174,27 @@ func TestSlide(t *testing.T) {
 	echo(q2.list)
 	echo(n, last)
 }
+
+func TestWalk(t *testing.T) {
+	q1.Walk(func(item any) {
+		fmt.Print(item.(int), " ")
+	}, false)
+
+	echo()
+
+	q1.Walk(func(item any) {
+		fmt.Print(item.(int), " ")
+	}, true)
+
+	echo()
+
+	q3.Walk(func(item any) {
+		fmt.Print(item.(int), " ")
+	}, false)
+
+	echo()
+
+	q3.Walk(func(item any) {
+		fmt.Print(item.(int), " ")
+	}, true)
+}
