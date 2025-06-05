@@ -179,22 +179,20 @@ func TestWalk(t *testing.T) {
 	q1.Walk(func(item any) {
 		fmt.Print(item.(int), " ")
 	}, false)
-
 	echo()
 
 	q1.Walk(func(item any) {
 		fmt.Print(item.(int), " ")
 	}, true)
-
 	echo()
 
 	q3.Walk(func(item any) {
 		fmt.Print(item.(int), " ")
 	}, false)
-
 	echo()
 
 	q3.Walk(func(item any) {
 		fmt.Print(item.(int), " ")
 	}, true)
+	echo()
 }
