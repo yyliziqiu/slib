@@ -243,7 +243,15 @@ func TestFindAll(t *testing.T) {
 }
 
 func TestTerminalN(t *testing.T) {
+	result := q1.TerminalN(3, false)
+	echo(result)
+	result = q1.TerminalN(3, true)
+	echo(result)
 
+	result = q2.TerminalN(5, false)
+	echo(result)
+	result = q2.TerminalN(5, true)
+	echo(result)
 }
 
 func TestTerminal(t *testing.T) {
