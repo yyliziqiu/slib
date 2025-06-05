@@ -106,7 +106,7 @@ func (q *Queue) print(tag string) {
 }
 
 func (q *Queue) status() string {
-	return fmt.Sprintf("head %-2d, tail %-2d, len %-2d, cap %-2d", q.head, q.tail, q.len(), q.cap())
+	return fmt.Sprintf("%2d - %-2d, %2d / %-2d", q.head, q.tail, q.len(), q.cap())
 }
 
 func (q *Queue) grow() {
