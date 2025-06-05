@@ -212,8 +212,8 @@ func (q *Queue) FindAll(f Filter) []any {
 	return all
 }
 
-// GetTerminalN 获取队列前/后 n 个 item
-func (q *Queue) GetTerminalN(n int, reverse bool) []any {
+// TerminalN 获取队列前/后 n 个 item
+func (q *Queue) TerminalN(n int, reverse bool) []any {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 
@@ -237,8 +237,8 @@ func (q *Queue) GetTerminalN(n int, reverse bool) []any {
 	return items
 }
 
-// GetTerminal 获取队列前/后多个符合条件的 item，遇到第一个不符合条件的 item 停止遍历
-func (q *Queue) GetTerminal(filter Filter, reverse bool) []any {
+// Terminal 获取队列前/后多个符合条件的 item，遇到第一个不符合条件的 item 停止遍历
+func (q *Queue) Terminal(filter Filter, reverse bool) []any {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 
@@ -297,12 +297,12 @@ func (q *Queue) Reset(data []any) {
 	q.reset(data)
 }
 
-// Clone 复制列表
-func (q *Queue) Clone() []any {
+// CopyList 复制列表
+func (q *Queue) CopyList() []any {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 
-	return q.clone()
+	return q.copyList()
 }
 
 // Save 保存队列数据快照
@@ -310,7 +310,7 @@ func (q *Queue) Save() error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	return ssnap.Save(q.path, q.clone())
+	return ssnap.Save(q.path, q.copyList())
 }
 
 // Load 加载队列数据快照

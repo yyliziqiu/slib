@@ -196,3 +196,27 @@ func TestWalk(t *testing.T) {
 	}, true)
 	echo()
 }
+
+func TestFind(t *testing.T) {
+
+}
+
+func TestFindAll(t *testing.T) {
+
+}
+
+func TestTerminalN(t *testing.T) {
+
+}
+
+func TestTerminal(t *testing.T) {
+
+}
+
+func TestRange(t *testing.T) {
+
+}
+
+func TestSaveAndLoad(t *testing.T) {
+
+}

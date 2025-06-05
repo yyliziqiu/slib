@@ -192,7 +192,7 @@ func (q *Queue) reset(data []any) {
 }
 
 // 复制列表
-func (q *Queue) clone() []any {
+func (q *Queue) copyList() []any {
 	cpy := make([]any, 0, q.len())
 	for i := q.head; i != q.tail; i = q.next(i) {
 		cpy = append(cpy, q.list[i])
