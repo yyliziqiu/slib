@@ -198,7 +198,37 @@ func TestWalk(t *testing.T) {
 }
 
 func TestFind(t *testing.T) {
+	item, _ := q1.Find(func(item any) bool {
+		n := item.(int)
+		fmt.Print(n, " ")
+		return n == 3
+	}, false)
+	echo()
+	echo(item)
 
+	item, _ = q1.Find(func(item any) bool {
+		n := item.(int)
+		fmt.Print(n, " ")
+		return n == 100
+	}, false)
+	echo()
+	echo(item)
+
+	item, _ = q1.Find(func(item any) bool {
+		n := item.(int)
+		fmt.Print(n, " ")
+		return n == 3
+	}, true)
+	echo()
+	echo(item)
+
+	item, _ = q1.Find(func(item any) bool {
+		n := item.(int)
+		fmt.Print(n, " ")
+		return n == 100
+	}, true)
+	echo()
+	echo(item)
 }
 
 func TestFindAll(t *testing.T) {

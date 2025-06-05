@@ -130,7 +130,7 @@ func (q *Queue) SlideN(item any, n int) (any, bool) {
 	return item, true
 }
 
-// Remove 需要删除的元素返回 true，否则返回 false。
+// Remove 需要删除的元素返回 true，否则返回 false
 type Remove func(item any) bool
 
 // Slide  类似于滑动窗口，在队列尾添加一个元素，并从队列头开始直到第一个不需要删除的元素出现，该元素前面的元素全部删除

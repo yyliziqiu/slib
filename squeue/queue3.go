@@ -17,5 +17,5 @@ func (q *Queue) IsEmpty() bool {
 
 // CopyItems deprecated
 func (q *Queue) CopyItems() []any {
-	return q.Clone()
+	return q.CopyList()
 }
