@@ -36,6 +36,10 @@ func echo(a ...any) {
 	fmt.Println(a...)
 }
 
+func echo2(a ...any) {
+	fmt.Print(a...)
+}
+
 func TestLen(t *testing.T) {
 	echo("Q1 len: ", q1.len()) // 7
 	echo("Q2 len: ", q2.len()) // 3
@@ -177,22 +181,22 @@ func TestSlide(t *testing.T) {
 
 func TestWalk(t *testing.T) {
 	q1.Walk(func(item any) {
-		fmt.Print(item.(int), " ")
+		echo2(item.(int), " ")
 	}, false)
 	echo()
 
 	q1.Walk(func(item any) {
-		fmt.Print(item.(int), " ")
+		echo2(item.(int), " ")
 	}, true)
 	echo()
 
 	q3.Walk(func(item any) {
-		fmt.Print(item.(int), " ")
+		echo2(item.(int), " ")
 	}, false)
 	echo()
 
 	q3.Walk(func(item any) {
-		fmt.Print(item.(int), " ")
+		echo2(item.(int), " ")
 	}, true)
 	echo()
 }
@@ -200,7 +204,7 @@ func TestWalk(t *testing.T) {
 func TestFind(t *testing.T) {
 	item, _ := q1.Find(func(item any) bool {
 		n := item.(int)
-		fmt.Print(n, " ")
+		echo2(n, " ")
 		return n == 3
 	}, false)
 	echo()
@@ -208,7 +212,7 @@ func TestFind(t *testing.T) {
 
 	item, _ = q1.Find(func(item any) bool {
 		n := item.(int)
-		fmt.Print(n, " ")
+		echo2(n, " ")
 		return n == 100
 	}, false)
 	echo()
@@ -216,7 +220,7 @@ func TestFind(t *testing.T) {
 
 	item, _ = q1.Find(func(item any) bool {
 		n := item.(int)
-		fmt.Print(n, " ")
+		echo2(n, " ")
 		return n == 3
 	}, true)
 	echo()
@@ -224,7 +228,7 @@ func TestFind(t *testing.T) {
 
 	item, _ = q1.Find(func(item any) bool {
 		n := item.(int)
-		fmt.Print(n, " ")
+		echo2(n, " ")
 		return n == 100
 	}, true)
 	echo()
@@ -232,7 +236,10 @@ func TestFind(t *testing.T) {
 }
 
 func TestFindAll(t *testing.T) {
-
+	result := q1.FindAll(func(item any) bool {
+		return item.(int) < 5
+	})
+	echo(result)
 }
 
 func TestTerminalN(t *testing.T) {
