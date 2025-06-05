@@ -23,9 +23,22 @@ var q2 = &Queue{
 	tail:  1,
 }
 
+var q3 = &Queue{
+	step:  10,
+	path:  "",
+	debug: true,
+	list:  []any{3, 4, 5, 6, 7, 8, nil, nil, nil, 1, 2},
+	head:  9,
+	tail:  6,
+}
+
+func echo(a ...any) {
+	fmt.Println(a...)
+}
+
 func TestLen(t *testing.T) {
-	t.Log("Q1 len: ", q1.len()) // 7
-	t.Log("Q2 len: ", q2.len()) // 3
+	echo("Q1 len: ", q1.len()) // 7
+	echo("Q2 len: ", q2.len()) // 3
 }
 
 func TestPushAndPop(t *testing.T) {
@@ -33,12 +46,12 @@ func TestPushAndPop(t *testing.T) {
 	for _, i := range items {
 		q1.Push(i)
 	}
-	fmt.Println(q1.list)
+	echo(q1.list)
 
 	for !q1.empty() {
 		q1.pop()
 	}
-	fmt.Println(q1.list)
+	echo(q1.list)
 }
 
 func TestPushAndPop2(t *testing.T) {
@@ -46,16 +59,81 @@ func TestPushAndPop2(t *testing.T) {
 	for _, i := range items {
 		q2.Push(i)
 	}
-	fmt.Println(q2.list)
+	echo(q2.list)
 
 	for !q2.empty() {
 		q2.pop()
 	}
-	fmt.Println(q2.list)
+	echo(q2.list)
 
 	items = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	for _, i := range items {
 		q2.Push(i)
 	}
-	fmt.Println(q2.list)
+	echo(q2.list)
+
+	items = []int{10, 11, 12, 13}
+	for _, i := range items {
+		q2.Push(i)
+	}
+	echo(q2.list)
+}
+
+func TestGet(t *testing.T) {
+	echo(q1.Get(0))  // err
+	echo(q1.Get(1))  // 1
+	echo(q1.Get(4))  // 4
+	echo(q1.Get(8))  // err
+	echo(q1.Get(10)) // err
+}
+
+func TestHeadItem(t *testing.T) {
+	echo(q1.HeadItem()) // 1
+	echo(q2.HeadItem()) // 1
+}
+
+func TestTailItem(t *testing.T) {
+	echo(q1.TailItem()) // 7
+	echo(q2.TailItem()) // 3
+}
+
+func TestEmpty(t *testing.T) {
+	echo(q2.Empty())
+	for !q2.empty() {
+		q2.pop()
+	}
+	echo(q2.list)
+	echo(q2.Empty())
+}
+
+func TestPops(t *testing.T) {
+	result := q1.Pops(func(item any) bool {
+		n := item.(int)
+		return n <= 4
+	})
+	echo(q1.list)
+	echo(result)
+
+	result = q1.Pops(func(item any) bool {
+		n := item.(int)
+		return n <= 100
+	})
+	echo(q1.list)
+	echo(result)
+
+	echo("\n=========================================\n")
+
+	result = q3.Pops(func(item any) bool {
+		n := item.(int)
+		return n <= 4
+	})
+	echo(q3.list)
+	echo(result)
+
+	result = q3.Pops(func(item any) bool {
+		n := item.(int)
+		return n <= 100
+	})
+	echo(q3.list)
+	echo(result)
 }

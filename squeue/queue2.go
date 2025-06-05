@@ -93,13 +93,14 @@ func (q *Queue) Pops(filter Filter) []any {
 	defer q.mu.Unlock()
 
 	result := make([]any, 0, 4)
-	for i := q.head; i != q.tail; i = q.next(i) {
-		ok := filter(q.list[i])
+	for q.head != q.tail {
+		ok := filter(q.list[q.head])
 		if !ok {
 			break
 		}
-		result = append(result, q.list[i])
-		q.pop()
+		result = append(result, q.list[q.head])
+		q.list[q.head] = nil
+		q.head = q.next(q.head)
 	}
 
 	return result
