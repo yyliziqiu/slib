@@ -134,9 +134,9 @@ func (q *Queue) SlideN(item any, n int) (any, bool) {
 type Remove func(item any) bool
 
 // Slide  类似于滑动窗口，在队列尾添加一个元素，并从队列头开始直到第一个不需要删除的元素出现，该元素前面的元素全部删除
-// 第一个返回值表示最后一个删除的元素
-// 第二个返回值表示是窗口否发生了滑动
-func (q *Queue) Slide(item any, remove Remove) (removed any, ok bool) {
+// 第一个返回值表示最后一个被删除的元素
+// 第二个返回值表示被删除的元素个数
+func (q *Queue) Slide(item any, remove Remove) (last any, n int) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
@@ -144,14 +144,13 @@ func (q *Queue) Slide(item any, remove Remove) (removed any, ok bool) {
 	q.push(item)
 
 	// 将队列控制在指定条件内
-	slide := false
 	for !q.empty() && remove(q.list[q.head]) {
-		removed, ok = q.pop()
-		slide = true
+		n++
+		last, _ = q.pop()
 	}
 
 	// 发生了滑动，打印日志
-	if slide {
+	if n > 0 {
 		q.print("slide")
 	}
 

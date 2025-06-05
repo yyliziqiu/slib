@@ -153,10 +153,24 @@ func TestSlideN(t *testing.T) {
 }
 
 func TestSlide(t *testing.T) {
-	item, removed := q1.Slide(8, func(item any) bool {
-		n := item.(int)
-		return n <= 4
+	n, last := q1.Slide(8, func(item any) bool {
+		nn := item.(int)
+		return nn <= 4
 	})
-	echo(item, removed)
 	echo(q1.list)
+	echo(n, last)
+
+	n, last = q2.Slide(8, func(item any) bool {
+		nn := item.(int)
+		return nn <= 4
+	})
+	echo(q2.list)
+	echo(n, last)
+
+	n, last = q2.Slide(8, func(item any) bool {
+		nn := item.(int)
+		return nn <= 4
+	})
+	echo(q2.list)
+	echo(n, last)
 }
