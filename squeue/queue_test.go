@@ -9,7 +9,7 @@ var q1 = &Queue{
 	step:  10,
 	path:  "",
 	debug: true,
-	list:  []any{0, 1, 2, 3, 4, 5, 6, 7, 0, 0},
+	list:  []any{nil, 1, 2, 3, 4, 5, 6, 7, nil, nil, nil},
 	head:  1,
 	tail:  8,
 }
@@ -18,18 +18,18 @@ var q2 = &Queue{
 	step:  10,
 	path:  "",
 	debug: true,
-	list:  []any{10, 0, 0, 0, 0, 0, 0, 0, 8, 9},
-	head:  8,
+	list:  []any{3, nil, nil, nil, nil, nil, nil, nil, nil, 1, 2},
+	head:  9,
 	tail:  1,
 }
 
 func TestLen(t *testing.T) {
-	t.Log("Q1 len: ", q1.len())
-	t.Log("Q2 len: ", q2.len())
+	t.Log("Q1 len: ", q1.len()) // 7
+	t.Log("Q2 len: ", q2.len()) // 3
 }
 
 func TestPushAndPop(t *testing.T) {
-	items := []int{7, 8, 9, 10}
+	items := []int{8, 9, 10, 11, 12}
 	for _, i := range items {
 		q1.Push(i)
 	}
@@ -42,7 +42,7 @@ func TestPushAndPop(t *testing.T) {
 }
 
 func TestPushAndPop2(t *testing.T) {
-	items := []int{7, 8, 9, 10}
+	items := []int{4, 5, 6}
 	for _, i := range items {
 		q2.Push(i)
 	}

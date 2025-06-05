@@ -95,7 +95,7 @@ func (q *Queue) push(item any) {
 
 	// 打印 debug 信息
 	if q.debug {
-		q.print(fmt.Sprintf("push %v", item))
+		q.print(fmt.Sprintf("push %+v", item))
 	}
 }
 
@@ -136,7 +136,7 @@ func (q *Queue) pop() (any, bool) {
 
 	// 打印 debug 信息
 	if q.debug {
-		q.print(fmt.Sprintf("pop  %v", item))
+		q.print(fmt.Sprintf("pop  %+v", item))
 	}
 
 	return item, true
