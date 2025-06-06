@@ -94,11 +94,12 @@ func (q *Queue) Pops(filter Filter) []any {
 
 	result := make([]any, 0, 4)
 	for q.head != q.tail {
-		ok := filter(q.list[q.head])
+		item := q.list[q.head]
+		ok := filter(item)
 		if !ok {
 			break
 		}
-		result = append(result, q.list[q.head])
+		result = append(result, item)
 		q.list[q.head] = nil
 		q.head = q.headNext()
 	}
