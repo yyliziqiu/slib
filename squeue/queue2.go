@@ -182,13 +182,13 @@ func (q *Queue) Find(filter Filter, reverse bool) (any, int) {
 
 	if reverse {
 		for i := q.tailPrev(); i != q.headPrev(); i = q.prev(i) {
-			if item, _ := q.get(i); filter(item) {
+			if item := q.list[i]; filter(item) {
 				return item, i
 			}
 		}
 	} else {
 		for i := q.head; i != q.tail; i = q.next(i) {
-			if item, _ := q.get(i); filter(item) {
+			if item := q.list[i]; filter(item) {
 				return item, i
 			}
 		}
