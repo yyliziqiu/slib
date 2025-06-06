@@ -50,12 +50,12 @@ func TestPushAndPop(t *testing.T) {
 	for _, i := range items {
 		q1.Push(i)
 	}
-	echo(q1.list)
+	echo(q1.list) // [1 2 3 4 5 6 7 8 9 10 11 12 <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil>]
 
 	for !q1.empty() {
 		q1.pop()
 	}
-	echo(q1.list)
+	echo(q1.list) // [<nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil>]
 }
 
 func TestPushAndPop2(t *testing.T) {
@@ -63,24 +63,24 @@ func TestPushAndPop2(t *testing.T) {
 	for _, i := range items {
 		q2.Push(i)
 	}
-	echo(q2.list)
+	echo(q2.list) // [3 4 5 6 <nil> <nil> <nil> <nil> <nil> 1 2]
 
 	for !q2.empty() {
 		q2.pop()
 	}
-	echo(q2.list)
+	echo(q2.list) // [<nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil>]
 
 	items = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	for _, i := range items {
 		q2.Push(i)
 	}
-	echo(q2.list)
+	echo(q2.list) // [8 9 <nil> <nil> 1 2 3 4 5 6 7]
 
 	items = []int{10, 11, 12, 13}
 	for _, i := range items {
 		q2.Push(i)
 	}
-	echo(q2.list)
+	echo(q2.list) // [1 2 3 4 5 6 7 8 9 10 11 12 13 <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil>]
 }
 
 func TestGet(t *testing.T) {
@@ -102,12 +102,12 @@ func TestTailItem(t *testing.T) {
 }
 
 func TestEmpty(t *testing.T) {
-	echo(q2.Empty())
+	echo(q2.Empty()) // false
 	for !q2.empty() {
 		q2.pop()
 	}
-	echo(q2.list)
-	echo(q2.Empty())
+	echo(q2.list)    // [<nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil>]
+	echo(q2.Empty()) // true
 }
 
 func TestPops(t *testing.T) {
@@ -115,15 +115,15 @@ func TestPops(t *testing.T) {
 		n := item.(int)
 		return n <= 4
 	})
-	echo(q1.list)
-	echo(result)
+	echo(q1.list) // [<nil> <nil> <nil> <nil> <nil> 5 6 7 <nil> <nil> <nil>]
+	echo(result)  // [1 2 3 4]
 
 	result = q1.Pops(func(item any) bool {
 		n := item.(int)
 		return n <= 100
 	})
-	echo(q1.list)
-	echo(result)
+	echo(q1.list) // [<nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil>]
+	echo(result)  // [5 6 7]
 
 	echo("\n=========================================\n")
 
@@ -131,15 +131,15 @@ func TestPops(t *testing.T) {
 		n := item.(int)
 		return n <= 4
 	})
-	echo(q3.list)
-	echo(result)
+	echo(q3.list) // [<nil> <nil> 5 6 7 8 <nil> <nil> <nil> <nil> <nil>]
+	echo(result)  // [1 2 3 4]
 
 	result = q3.Pops(func(item any) bool {
 		n := item.(int)
 		return n <= 100
 	})
-	echo(q3.list)
-	echo(result)
+	echo(q3.list) // [<nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil>]
+	echo(result)  // [5 6 7 8]
 }
 
 func TestSlideN(t *testing.T) {
@@ -147,56 +147,56 @@ func TestSlideN(t *testing.T) {
 	for _, i := range items {
 		q1.SlideN(i, 3)
 	}
-	echo(q1.list)
+	echo(q1.list) // [11 12 <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> 10]
 
 	items = []int{4, 5, 6, 7, 8, 9}
 	for _, i := range items {
 		q2.SlideN(i, 5)
 	}
-	echo(q2.list)
+	echo(q2.list) // [<nil> <nil> 5 6 7 8 9 <nil> <nil> <nil> <nil>]
 }
 
 func TestSlide(t *testing.T) {
-	n, last := q1.Slide(8, func(item any) bool {
+	last, n := q1.Slide(8, func(item any) bool {
 		nn := item.(int)
 		return nn <= 4
 	})
-	echo(q1.list)
-	echo(n, last)
+	echo(q1.list) // [<nil> <nil> <nil> <nil> <nil> 5 6 7 8 <nil> <nil>]
+	echo(last, n) // 4 4
 
-	n, last = q2.Slide(8, func(item any) bool {
+	last, n = q2.Slide(8, func(item any) bool {
 		nn := item.(int)
 		return nn <= 4
 	})
-	echo(q2.list)
-	echo(n, last)
+	echo(q2.list) // [<nil> 8 <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil>]
+	echo(last, n) // 3 3
 
-	n, last = q2.Slide(8, func(item any) bool {
+	last, n = q2.Slide(8, func(item any) bool {
 		nn := item.(int)
 		return nn <= 4
 	})
-	echo(q2.list)
-	echo(n, last)
+	echo(q2.list) // [<nil> 8 8 <nil> <nil> <nil> <nil> <nil> <nil> <nil> <nil>]
+	echo(last, n) // <nil> 0
 }
 
 func TestWalk(t *testing.T) {
 	q1.Walk(func(item any) {
-		echo2(item.(int), " ")
+		echo2(item.(int), " ") // 1 2 3 4 5 6 7
 	}, false)
 	echo()
 
 	q1.Walk(func(item any) {
-		echo2(item.(int), " ")
+		echo2(item.(int), " ") // 7 6 5 4 3 2 1
 	}, true)
 	echo()
 
 	q3.Walk(func(item any) {
-		echo2(item.(int), " ")
+		echo2(item.(int), " ") // 1 2 3 4 5 6 7 8
 	}, false)
 	echo()
 
 	q3.Walk(func(item any) {
-		echo2(item.(int), " ")
+		echo2(item.(int), " ") // 8 7 6 5 4 3 2 1
 	}, true)
 	echo()
 }
@@ -208,7 +208,7 @@ func TestFind(t *testing.T) {
 		return n == 3
 	}, false)
 	echo()
-	echo(item)
+	echo(item) // 3
 
 	item, _ = q1.Find(func(item any) bool {
 		n := item.(int)
@@ -216,7 +216,7 @@ func TestFind(t *testing.T) {
 		return n == 100
 	}, false)
 	echo()
-	echo(item)
+	echo(item) // <nil>
 
 	item, _ = q1.Find(func(item any) bool {
 		n := item.(int)
@@ -224,7 +224,7 @@ func TestFind(t *testing.T) {
 		return n == 3
 	}, true)
 	echo()
-	echo(item)
+	echo(item) // 3
 
 	item, _ = q1.Find(func(item any) bool {
 		n := item.(int)
@@ -232,46 +232,46 @@ func TestFind(t *testing.T) {
 		return n == 100
 	}, true)
 	echo()
-	echo(item)
+	echo(item) // <nil>
 }
 
 func TestFindAll(t *testing.T) {
 	result := q1.FindAll(func(item any) bool {
 		return item.(int) < 5
 	})
-	echo(result)
+	echo(result) // [1 2 3 4]
 }
 
 func TestTerminalN(t *testing.T) {
 	result := q1.TerminalN(3, false)
-	echo(result)
+	echo(result) // [1 2 3]
 	result = q1.TerminalN(3, true)
-	echo(result)
+	echo(result) // [7 6 5]
 
 	result = q2.TerminalN(5, false)
-	echo(result)
+	echo(result) // [1 2 3]
 	result = q2.TerminalN(5, true)
-	echo(result)
+	echo(result) // [3 2 1]
 }
 
 func TestTerminal(t *testing.T) {
 	result := q1.Terminal(func(item any) bool {
 		return item.(int) <= 3
 	}, false)
-	echo(result)
+	echo(result) // [1 2 3]
 	result = q1.Terminal(func(item any) bool {
 		return item.(int) <= 3
 	}, true)
-	echo(result)
+	echo(result) // []
 
 	result = q3.Terminal(func(item any) bool {
 		return item.(int) <= 3
 	}, false)
-	echo(result)
+	echo(result) // [1 2 3]
 	result = q3.Terminal(func(item any) bool {
 		return item.(int) >= 5
 	}, true)
-	echo(result)
+	echo(result) // [8 7 6 5]
 }
 
 func TestWindow(t *testing.T) {
@@ -280,28 +280,28 @@ func TestWindow(t *testing.T) {
 	}, func(item any) bool {
 		return item.(int) == 4
 	})
-	echo(result)
+	echo(result) // [2 3]
 
 	result = q1.Window(func(item any) bool {
 		return item.(int) == 20
 	}, func(item any) bool {
 		return item.(int) == 4
 	})
-	echo(result)
+	echo(result) // []
 
 	result = q3.Window(func(item any) bool {
 		return item.(int) == 2
 	}, func(item any) bool {
 		return item.(int) >= 4
 	})
-	echo(result)
+	echo(result) // [2 3]
 
 	result = q3.Window(func(item any) bool {
 		return item.(int) >= 2
 	}, func(item any) bool {
 		return item.(int) == 20
 	})
-	echo(result)
+	echo(result) // [2 3 4 5 6 7 8]
 }
 
 func TestSaveAndLoad(t *testing.T) {
