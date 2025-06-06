@@ -255,11 +255,53 @@ func TestTerminalN(t *testing.T) {
 }
 
 func TestTerminal(t *testing.T) {
+	result := q1.Terminal(func(item any) bool {
+		return item.(int) <= 3
+	}, false)
+	echo(result)
+	result = q1.Terminal(func(item any) bool {
+		return item.(int) <= 3
+	}, true)
+	echo(result)
 
+	result = q3.Terminal(func(item any) bool {
+		return item.(int) <= 3
+	}, false)
+	echo(result)
+	result = q3.Terminal(func(item any) bool {
+		return item.(int) >= 5
+	}, true)
+	echo(result)
 }
 
-func TestRange(t *testing.T) {
+func TestWindow(t *testing.T) {
+	result := q1.Window(func(item any) bool {
+		return item.(int) == 2
+	}, func(item any) bool {
+		return item.(int) == 4
+	})
+	echo(result)
 
+	result = q1.Window(func(item any) bool {
+		return item.(int) == 20
+	}, func(item any) bool {
+		return item.(int) == 4
+	})
+	echo(result)
+
+	result = q3.Window(func(item any) bool {
+		return item.(int) == 2
+	}, func(item any) bool {
+		return item.(int) >= 4
+	})
+	echo(result)
+
+	result = q3.Window(func(item any) bool {
+		return item.(int) >= 2
+	}, func(item any) bool {
+		return item.(int) == 20
+	})
+	echo(result)
 }
 
 func TestSaveAndLoad(t *testing.T) {

@@ -264,9 +264,9 @@ func (q *Queue) Terminal(filter Filter, reverse bool) []any {
 	return items
 }
 
-// Range
+// Window
 // 返回结果包含 bgn item，不包含 end item
-func (q *Queue) Range(bgn Filter, end Filter) []any {
+func (q *Queue) Window(bgn Filter, end Filter) []any {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 
@@ -274,7 +274,7 @@ func (q *Queue) Range(bgn Filter, end Filter) []any {
 
 	result := make([]any, 0)
 	for i := q.head; i != q.tail; i = q.next(i) {
-		item, _ := q.get(i)
+		item := q.list[i]
 		if !start && bgn(item) {
 			start = true
 		}
