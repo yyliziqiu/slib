@@ -100,7 +100,7 @@ func (q *Queue) Pops(filter Filter) []any {
 		}
 		result = append(result, q.list[q.head])
 		q.list[q.head] = nil
-		q.head = q.next(q.head)
+		q.head = q.headNext()
 	}
 
 	return result
