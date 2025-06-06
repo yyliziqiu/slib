@@ -204,7 +204,7 @@ func (q *Queue) FindAll(f Filter) []any {
 
 	all := make([]any, 0)
 	for i := q.head; i != q.tail; i = q.next(i) {
-		if item, _ := q.get(i); f(item) {
+		if item := q.list[i]; f(item) {
 			all = append(all, item)
 		}
 	}
@@ -224,13 +224,11 @@ func (q *Queue) TerminalN(n int, reverse bool) []any {
 	items := make([]any, 0, n)
 	if reverse {
 		for i, j := 0, q.tailPrev(); i < n && j != q.headPrev(); i, j = i+1, q.prev(j) {
-			item, _ := q.get(j)
-			items = append(items, item)
+			items = append(items, q.list[j])
 		}
 	} else {
 		for i, j := 0, q.head; i < n && j != q.tail; i, j = i+1, q.next(j) {
-			item, _ := q.get(j)
-			items = append(items, item)
+			items = append(items, q.list[j])
 		}
 	}
 
@@ -245,7 +243,7 @@ func (q *Queue) Terminal(filter Filter, reverse bool) []any {
 	items := make([]any, 0)
 	if reverse {
 		for i := q.tailPrev(); i != q.headPrev(); i = q.prev(i) {
-			item, _ := q.get(i)
+			item := q.list[i]
 			if !filter(item) {
 				break
 			}
@@ -253,7 +251,7 @@ func (q *Queue) Terminal(filter Filter, reverse bool) []any {
 		}
 	} else {
 		for i := q.head; i != q.tail; i = q.next(i) {
-			item, _ := q.get(i)
+			item := q.list[i]
 			if !filter(item) {
 				break
 			}
