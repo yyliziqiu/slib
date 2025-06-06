@@ -69,11 +69,11 @@ func (q *Queue) Len() int {
 }
 
 // Push 从队列尾向队列中添加一个元素
-func (q *Queue) Push(b any) {
+func (q *Queue) Push(item any) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
-	q.push(b)
+	q.push(item)
 }
 
 // Pop 从队列头弹出一个元素
