@@ -25,7 +25,7 @@ func (q *Queue) HeadItem() (any, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 
-	return q.headItem()
+	return q.get(q.head)
 }
 
 // TailItem 获取尾元素
@@ -33,7 +33,7 @@ func (q *Queue) TailItem() (any, error) {
 	q.mu.RLock()
 	defer q.mu.RUnlock()
 
-	return q.tailItem()
+	return q.get(q.tailPrev())
 }
 
 // Status 获取队列状态
@@ -87,7 +87,7 @@ func (q *Queue) Pop() (any, bool) {
 // Filter 元素符合条件返回 true，否则返回 false
 type Filter func(item any) bool
 
-// Pops 从队列头弹出多个元素，遇到第一个不符合条件的元素停止弹出
+// Pops 从队列头开始弹出所有符合条件的元素，直到遇到第一个不符合条件的元素停止
 func (q *Queue) Pops(filter Filter) []any {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -270,7 +270,6 @@ func (q *Queue) Window(bgn Filter, end Filter) []any {
 	defer q.mu.RUnlock()
 
 	start := false
-
 	result := make([]any, 0)
 	for i := q.head; i != q.tail; i = q.next(i) {
 		item := q.list[i]

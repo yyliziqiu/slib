@@ -167,16 +167,6 @@ func (q *Queue) valid(i int) bool {
 	return false
 }
 
-// 获取头元素
-func (q *Queue) headItem() (any, error) {
-	return q.get(q.head)
-}
-
-// 获取尾元素
-func (q *Queue) tailItem() (any, error) {
-	return q.get(q.tailPrev())
-}
-
 // 重置队列
 func (q *Queue) reset(data []any) {
 	initCap := (len(data)/q.step+1)*q.step + 1
