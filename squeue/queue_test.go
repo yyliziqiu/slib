@@ -25,7 +25,7 @@ var q2 = &Queue{
 
 var q3 = &Queue{
 	step:  10,
-	path:  "",
+	path:  "/private/ws/self/slib/data/q3",
 	debug: true,
 	list:  []any{3, 4, 5, 6, 7, 8, nil, nil, nil, 1, 2},
 	head:  9,
@@ -305,5 +305,9 @@ func TestWindow(t *testing.T) {
 }
 
 func TestSaveAndLoad(t *testing.T) {
+	_ = q3.Save()
 
+	_ = q3.Load(1)
+
+	echo(q3.list)
 }
