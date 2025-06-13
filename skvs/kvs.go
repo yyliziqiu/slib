@@ -102,27 +102,27 @@ func (k Kvs) D(key string, def time.Duration) time.Duration {
 
 var lower = strings.ToLower
 
-func (k Kvs) ICS(key string, def string) string {
+func (k Kvs) LS(key string, def string) string {
 	return k.S(lower(key), def)
 }
 
-func (k Kvs) ICB(key string, def bool) bool {
+func (k Kvs) LB(key string, def bool) bool {
 	return k.B(lower(key), def)
 }
 
-func (k Kvs) ICI(key string, def int) int {
+func (k Kvs) LI(key string, def int) int {
 	return k.I(lower(key), def)
 }
 
-func (k Kvs) ICI64(key string, def int64) int64 {
+func (k Kvs) LI64(key string, def int64) int64 {
 	return k.I64(lower(key), def)
 }
 
-func (k Kvs) ICF64(key string, def float64) float64 {
+func (k Kvs) LF64(key string, def float64) float64 {
 	return k.F64(lower(key), def)
 }
 
-func (k Kvs) ICD(key string, def time.Duration) time.Duration {
+func (k Kvs) LD(key string, def time.Duration) time.Duration {
 	return k.D(lower(key), def)
 }
 
@@ -132,7 +132,7 @@ func (k Kvs) Get(key string) string {
 	return k.S(key, "")
 }
 
-func (k Kvs) ICGet(key string) string {
+func (k Kvs) LGet(key string) string {
 	return k.Get(lower(key))
 }
 
@@ -142,6 +142,26 @@ func (k Kvs) Id() string {
 
 func (k Kvs) Name() string {
 	return k.S("name", "")
+}
+
+func (k Kvs) Slug() string {
+	return k.S("slug", "")
+}
+
+func (k Kvs) Type() string {
+	return k.S("type", "")
+}
+
+func (k Kvs) Url() string {
+	return k.S("url", "")
+}
+
+func (k Kvs) Key() string {
+	return k.S("key", "")
+}
+
+func (k Kvs) Token() string {
+	return k.S("token", "")
 }
 
 func (k Kvs) Enabled() bool {
