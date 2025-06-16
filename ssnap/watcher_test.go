@@ -23,7 +23,7 @@ func TestWatchers(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	watchers := DefaultWatchers([]Setting{
+	watchers := DefaultWatchers([]DefaultWatcherConfig{
 		{
 			Path: "/private/ws/self/slib/data/data1.json",
 			Data: &data1,

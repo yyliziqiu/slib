@@ -6,16 +6,16 @@ import (
 )
 
 type DefaultWatcher struct {
-	snap *Snap
-	conf Config
+	Snap *Snap
+	Conf Config
 }
 
 func (w *DefaultWatcher) Save(exit bool) error {
 	if exit {
-		return w.snap.Save()
+		return w.Snap.Save()
 	}
 
-	d := w.conf.Poll
+	d := w.Conf.Poll
 	if d == 0 {
 		return nil
 	}
@@ -24,35 +24,35 @@ func (w *DefaultWatcher) Save(exit bool) error {
 		d = 30 * time.Minute // 防止保存时间太短导致副本丢失
 	}
 
-	return w.snap.Duplicate(d*3 + 10) // 至少保存 3 分副本
+	return w.Snap.Duplicate(d*3 + 10) // 至少保存 3 分副本
 }
 
 func (w *DefaultWatcher) Load() error {
-	return w.snap.Load()
+	return w.Snap.Load()
 }
 
 func (w *DefaultWatcher) Config() Config {
-	return w.conf
+	return w.Conf
 }
 
-type Setting struct {
+type DefaultWatcherConfig struct {
 	Path string
 	Data any
 	Name string
 	Poll time.Duration
 }
 
-func DefaultWatchers(settings ...Setting) []Watcher {
-	watchers := make([]Watcher, 0, len(settings))
-	for _, setting := range settings {
-		if setting.Name == "" {
-			setting.Name = filepath.Base(setting.Path)
+func DefaultWatchers(configs ...DefaultWatcherConfig) []Watcher {
+	watchers := make([]Watcher, 0, len(configs))
+	for _, config := range configs {
+		if config.Name == "" {
+			config.Name = filepath.Base(config.Path)
 		}
 		watchers = append(watchers, &DefaultWatcher{
-			snap: New(setting.Path, setting.Data),
-			conf: Config{
-				Name: setting.Name,
-				Poll: setting.Poll,
+			Snap: New(config.Path, config.Data),
+			Conf: Config{
+				Name: config.Name,
+				Poll: config.Poll,
 			},
 		})
 	}

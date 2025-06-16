@@ -1,0 +1,64 @@
+package squeue
+
+import (
+	"path/filepath"
+	"time"
+
+	"github.com/yyliziqiu/slib/ssnap"
+)
+
+type Watcher struct {
+	Queue *Queue
+	Item  any
+	Conf  ssnap.Config
+}
+
+func (w *Watcher) Save(exit bool) error {
+	if exit {
+		return w.Queue.Save()
+	}
+
+	d := w.Conf.Poll
+	if d == 0 {
+		return nil
+	}
+
+	if d < 30*time.Minute {
+		d = 30 * time.Minute
+	}
+
+	return w.Queue.Duplicate(d*3 + 10)
+}
+
+func (w *Watcher) Load() error {
+	return w.Queue.Load(w.Item)
+}
+
+func (w *Watcher) Config() ssnap.Config {
+	return w.Conf
+}
+
+type WatcherConfig struct {
+	Queue *Queue
+	Item  any
+	Name  string
+	Poll  time.Duration
+}
+
+func Watchers(configs ...WatcherConfig) []ssnap.Watcher {
+	watchers := make([]ssnap.Watcher, 0, len(configs))
+	for _, config := range configs {
+		if config.Name == "" {
+			config.Name = filepath.Base(config.Queue.path)
+		}
+		watchers = append(watchers, &Watcher{
+			Queue: config.Queue,
+			Item:  config.Item,
+			Conf: ssnap.Config{
+				Name: config.Name,
+				Poll: config.Poll,
+			},
+		})
+	}
+	return watchers
+}
