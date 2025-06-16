@@ -20,11 +20,11 @@ func (w *DefaultWatcher) Save(exit bool) error {
 		return nil
 	}
 
-	if d < 30*time.Minute {
-		d = 30 * time.Minute // 防止保存时间太短导致副本丢失
+	if d < 10*time.Minute {
+		d = 10 * time.Minute // 防止保存时间太短导致副本丢失
 	}
 
-	return w.Snap.Duplicate(d*3 + 10) // 至少保存 3 分副本
+	return w.Snap.Duplicate(d*3 + 10*time.Second) // 至少保存 3 分副本
 }
 
 func (w *DefaultWatcher) Load() error {

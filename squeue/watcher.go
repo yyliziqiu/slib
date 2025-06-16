@@ -23,11 +23,11 @@ func (w *Watcher) Save(exit bool) error {
 		return nil
 	}
 
-	if d < 30*time.Minute {
-		d = 30 * time.Minute
+	if d < 10*time.Minute {
+		d = 10 * time.Minute
 	}
 
-	return w.Queue.Duplicate(d*3 + 10)
+	return w.Queue.Duplicate(d*3 + 10*time.Second)
 }
 
 func (w *Watcher) Load() error {
