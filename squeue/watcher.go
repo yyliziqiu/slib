@@ -41,6 +41,7 @@ func (w *Watcher) Config() ssnap.Config {
 type WatcherConfig struct {
 	Queue *Queue
 	Item  any
+	Path  string
 	Name  string
 	Poll  time.Duration
 }
@@ -48,6 +49,12 @@ type WatcherConfig struct {
 func Watchers(configs ...WatcherConfig) []ssnap.Watcher {
 	watchers := make([]ssnap.Watcher, 0, len(configs))
 	for _, config := range configs {
+		if config.Path != "" {
+			config.Queue.path = config.Path
+		}
+		if config.Queue.path == "" {
+			continue
+		}
 		if config.Name == "" {
 			config.Name = filepath.Base(config.Queue.path)
 		}

@@ -1,8 +1,13 @@
 package squeue
 
 import (
+	"context"
 	"fmt"
 	"testing"
+	"time"
+
+	"github.com/yyliziqiu/slib/slog"
+	"github.com/yyliziqiu/slib/ssnap"
 )
 
 var q1 = &Queue{
@@ -16,7 +21,7 @@ var q1 = &Queue{
 
 var q2 = &Queue{
 	step:  10,
-	path:  "",
+	path:  "/private/ws/self/slib/data/q2",
 	debug: true,
 	list:  []any{3, nil, nil, nil, nil, nil, nil, nil, nil, 1, 2},
 	head:  9,
@@ -310,4 +315,38 @@ func TestSaveAndLoad(t *testing.T) {
 	_ = q3.Load(1)
 
 	echo(q3.list)
+}
+
+func TestWatcher(t *testing.T) {
+	slog.Default, _ = slog.New(slog.Config{Console: true})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	watchers := Watchers([]WatcherConfig{
+		{
+			Queue: q1,
+			Item:  0,
+			Path:  "/private/ws/self/slib/data/q1",
+		},
+		{
+			Queue: q2,
+			Item:  0,
+			Poll:  5 * time.Second,
+		},
+	}...)
+
+	err := ssnap.Watches(ctx, watchers)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println(q1.list)
+	fmt.Println(q1.list)
+
+	time.Sleep(30 * time.Second)
+
+	cancel()
+
+	time.Sleep(time.Second)
 }
