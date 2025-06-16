@@ -1,6 +1,7 @@
 package ssnap
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -36,6 +37,9 @@ func TestWatchers(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
+	fmt.Println(data1)
+	fmt.Println(data2)
 
 	time.Sleep(30 * time.Second)
 
