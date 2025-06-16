@@ -2,6 +2,7 @@ package squeue
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/yyliziqiu/slib/ssnap"
 )
@@ -335,4 +336,12 @@ func (q *Queue) Load(item any) error {
 	q.reset(list)
 
 	return nil
+}
+
+// Duplicate 保存队列数据快照副本
+func (q *Queue) Duplicate(d time.Duration) error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	return ssnap.Duplicate(q.path, q.copyList(), d)
 }

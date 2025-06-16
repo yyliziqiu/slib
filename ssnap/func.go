@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/yyliziqiu/slib/sfile"
+	"github.com/yyliziqiu/slib/slog"
 )
 
 func Save(path string, data interface{}) error {
@@ -51,4 +53,26 @@ func Load(path string, data interface{}) error {
 	}
 
 	return json.Unmarshal(bytes, data)
+}
+
+func Duplicate(path string, data any, d time.Duration) error {
+	nameRaw := filepath.Base(path)
+	baseDir := filepath.Join(filepath.Dir(path), nameRaw+"-dup")
+
+	// 清理过期快找副本
+	_ = filepath.Walk(baseDir, func(file string, info os.FileInfo, err error) error {
+		if err != nil {
+			if !os.IsNotExist(err) {
+				slog.Errorf("Walk snap duplicate failed, error:%v.", err)
+			}
+			return nil
+		}
+		if info.IsDir() || info.ModTime().After(time.Now().Add(-d)) {
+			return nil
+		}
+		return os.Remove(file)
+	})
+
+	// 保存最新快照
+	return Save(filepath.Join(baseDir, time.Now().Format(time.DateTime)), data)
 }
