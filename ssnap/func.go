@@ -74,5 +74,5 @@ func Duplicate(path string, data any, d time.Duration) error {
 	})
 
 	// 保存最新快照
-	return Save(filepath.Join(baseDir, time.Now().Format("20060102150405")), data)
+	return Save(filepath.Join(baseDir, time.Now().Format("20060102_150405")), data)
 }

@@ -110,3 +110,32 @@ func watcherSave(watcher Watcher, exit bool) error {
 
 	return err
 }
+
+type Default struct {
+	snap *Snap
+	conf Config
+}
+
+func (w *Default) Save(exit bool) error {
+	if exit {
+		return w.snap.Save()
+	}
+
+	d := w.conf.Internal
+	if d == 0 {
+		return nil
+	}
+	if d < 30*time.Minute {
+		d = 30 * time.Minute // 防止保存时间太短导致副本丢失
+	}
+
+	return w.snap.Duplicate(d*3 + 10) // 至少保存 3 分副本
+}
+
+func (w *Default) Load() error {
+	return w.snap.Load()
+}
+
+func (w *Default) Config() Config {
+	return w.conf
+}
