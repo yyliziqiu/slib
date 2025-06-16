@@ -1,7 +1,6 @@
 package ssnap
 
 import (
-	"context"
 	"path/filepath"
 	"time"
 )
@@ -43,7 +42,7 @@ type Setting struct {
 	Poll time.Duration
 }
 
-func Watchers(ctx context.Context, settings ...Setting) error {
+func DefaultWatchers(settings ...Setting) []Watcher {
 	watchers := make([]Watcher, 0, len(settings))
 	for _, setting := range settings {
 		if setting.Name == "" {
@@ -57,5 +56,5 @@ func Watchers(ctx context.Context, settings ...Setting) error {
 			},
 		})
 	}
-	return Watches(ctx, watchers)
+	return watchers
 }

@@ -23,7 +23,7 @@ func TestWatchers(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := Watchers(ctx, []Setting{
+	watchers := DefaultWatchers([]Setting{
 		{
 			Path: "/private/ws/self/slib/data/data1.json",
 			Data: &data1,
@@ -34,6 +34,8 @@ func TestWatchers(t *testing.T) {
 			Poll: 5 * time.Second,
 		},
 	}...)
+
+	err := Watches(ctx, watchers)
 	if err != nil {
 		t.Error(err)
 	}
