@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/yyliziqiu/slib/sfile"
 	"github.com/yyliziqiu/slib/ssnap"
 )
 
@@ -314,13 +315,21 @@ func (q *Queue) Save() error {
 
 // Load 加载队列数据快照
 func (q *Queue) Load(item any) error {
+	exist, err := sfile.Exist(q.path)
+	if err != nil {
+		return err
+	}
+	if !exist {
+		return nil
+	}
+
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
 	lst := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(item)), 0, 0)
 	lsp := reflect.New(lst.Type())
 
-	err := ssnap.Load(q.path, lsp.Interface())
+	err = ssnap.Load(q.path, lsp.Interface())
 	if err != nil {
 		return err
 	}
