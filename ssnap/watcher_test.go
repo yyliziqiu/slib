@@ -5,9 +5,13 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+
+	"github.com/yyliziqiu/slib/slog"
 )
 
 func TestWatchers(t *testing.T) {
+	slog.Default, _ = slog.New(slog.Config{Console: true})
+
 	data1 := map[string]string{
 		"hello": "world1",
 	}
