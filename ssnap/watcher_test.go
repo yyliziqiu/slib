@@ -2,6 +2,7 @@ package ssnap
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -27,11 +28,13 @@ func TestWatchers(t *testing.T) {
 		{
 			Path: "/private/ws/self/slib/data/data1.json",
 			Data: &data1,
+			Mu:   &sync.RWMutex{},
 		},
 		{
 			Path: "/private/ws/self/slib/data/data2.json",
 			Data: &data2,
 			Poll: 5 * time.Second,
+			Mu:   &sync.Mutex{},
 		},
 	}...)
 

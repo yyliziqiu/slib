@@ -2,15 +2,20 @@ package ssnap
 
 import (
 	"path/filepath"
+	"sync"
 	"time"
 )
 
 type DefaultWatcher struct {
 	Snap *Snap
 	Conf Config
+	Mu   sync.Locker
 }
 
 func (w *DefaultWatcher) Save(exit bool) error {
+	w.Mu.Lock()
+	defer w.Mu.Unlock()
+
 	if exit {
 		return w.Snap.Save()
 	}
@@ -28,6 +33,9 @@ func (w *DefaultWatcher) Save(exit bool) error {
 }
 
 func (w *DefaultWatcher) Load() error {
+	w.Mu.Lock()
+	defer w.Mu.Unlock()
+
 	return w.Snap.Load()
 }
 
@@ -40,6 +48,7 @@ type DefaultWatcherConfig struct {
 	Data any
 	Name string
 	Poll time.Duration
+	Mu   sync.Locker
 }
 
 func DefaultWatchers(configs ...DefaultWatcherConfig) []Watcher {
@@ -54,6 +63,7 @@ func DefaultWatchers(configs ...DefaultWatcherConfig) []Watcher {
 				Name: config.Name,
 				Poll: config.Poll,
 			},
+			Mu: config.Mu,
 		})
 	}
 	return watchers
