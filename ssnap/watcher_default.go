@@ -8,8 +8,12 @@ import (
 
 type DefaultWatcher struct {
 	Snap *Snap
-	Conf Config
+	Conf WatchConfig
 	Mu   sync.Locker
+}
+
+func (w *DefaultWatcher) WatchConfig() WatchConfig {
+	return w.Conf
 }
 
 func (w *DefaultWatcher) Save(exit bool) error {
@@ -20,16 +24,7 @@ func (w *DefaultWatcher) Save(exit bool) error {
 		return w.Snap.Save()
 	}
 
-	d := w.Conf.Poll
-	if d == 0 {
-		return nil
-	}
-
-	if d < 10*time.Minute {
-		d = 10 * time.Minute // 防止保存时间太短导致副本丢失
-	}
-
-	return w.Snap.Duplicate(d*3 + 10*time.Second) // 至少保存 3 分副本
+	return w.Snap.Duplicate()
 }
 
 func (w *DefaultWatcher) Load() error {
@@ -37,10 +32,6 @@ func (w *DefaultWatcher) Load() error {
 	defer w.Mu.Unlock()
 
 	return w.Snap.Load()
-}
-
-func (w *DefaultWatcher) Config() Config {
-	return w.Conf
 }
 
 type DefaultWatcherConfig struct {
@@ -58,8 +49,8 @@ func DefaultWatchers(configs ...DefaultWatcherConfig) []Watcher {
 			config.Name = filepath.Base(config.Path)
 		}
 		watchers = append(watchers, &DefaultWatcher{
-			Snap: New(config.Path, config.Data),
-			Conf: Config{
+			Snap: New3(config.Path, config.Data, config.Poll, 3),
+			Conf: WatchConfig{
 				Name: config.Name,
 				Poll: config.Poll,
 			},

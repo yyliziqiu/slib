@@ -14,13 +14,13 @@ type Watcher interface {
 	Save(exit bool) error
 }
 
-type Config struct {
+type WatchConfig struct {
 	Name string
 	Poll time.Duration
 }
 
-type WatcherConfig interface {
-	Config() Config
+type WatcherWatchConfig interface {
+	WatchConfig() WatchConfig
 }
 
 func Watches(ctx context.Context, watchers []Watcher) error {
@@ -56,7 +56,7 @@ func watcherLoad(watchers []Watcher) error {
 }
 
 func watcherName(watcher Watcher) string {
-	conf := watcherConfig(watcher)
+	conf := watcherWatchConfig(watcher)
 	if conf.Name != "" {
 		return conf.Name
 	}
@@ -69,16 +69,16 @@ func watcherName(watcher Watcher) string {
 	return typ.Name()
 }
 
-func watcherConfig(watcher any) Config {
-	c, ok := watcher.(WatcherConfig)
+func watcherWatchConfig(watcher any) WatchConfig {
+	c, ok := watcher.(WatcherWatchConfig)
 	if ok {
-		return c.Config()
+		return c.WatchConfig()
 	}
-	return Config{}
+	return WatchConfig{}
 }
 
 func runWatcherSave(ctx context.Context, watcher Watcher) {
-	conf := watcherConfig(watcher)
+	conf := watcherWatchConfig(watcher)
 
 	if conf.Poll <= 0 {
 		<-ctx.Done()
