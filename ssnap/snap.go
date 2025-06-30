@@ -27,7 +27,7 @@ func New2(path string, data interface{}, dupAge time.Duration) *Snap {
 }
 
 func New3(path string, data interface{}, poll time.Duration, n int) *Snap {
-	return New2(path, data, poll*time.Duration(n)+10*time.Second)
+	return New2(path, data, poll*time.Duration(n)+time.Second)
 }
 
 func (s *Snap) Path() string {
