@@ -10,7 +10,7 @@ import (
 type Watcher struct {
 	Queue *Queue
 	Item  any
-	Conf  ssnap.Config
+	Conf  ssnap.WatchConfig
 }
 
 func (w *Watcher) Save(exit bool) error {
@@ -23,10 +23,6 @@ func (w *Watcher) Save(exit bool) error {
 		return nil
 	}
 
-	if d < 10*time.Minute {
-		d = 10 * time.Minute
-	}
-
 	return w.Queue.Duplicate(d*3 + 10*time.Second)
 }
 
@@ -34,7 +30,7 @@ func (w *Watcher) Load() error {
 	return w.Queue.Load(w.Item)
 }
 
-func (w *Watcher) Config() ssnap.Config {
+func (w *Watcher) WatchConfig() ssnap.WatchConfig {
 	return w.Conf
 }
 
@@ -61,7 +57,7 @@ func Watchers(configs ...WatcherConfig) []ssnap.Watcher {
 		watchers = append(watchers, &Watcher{
 			Queue: config.Queue,
 			Item:  config.Item,
-			Conf: ssnap.Config{
+			Conf: ssnap.WatchConfig{
 				Name: config.Name,
 				Poll: config.Poll,
 			},
