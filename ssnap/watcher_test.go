@@ -46,7 +46,7 @@ func TestWatchers(t *testing.T) {
 	fmt.Println(data1)
 	fmt.Println(data2)
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	cancel()
 

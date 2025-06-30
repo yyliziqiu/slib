@@ -344,7 +344,7 @@ func TestWatcher(t *testing.T) {
 	fmt.Println(q1.list)
 	fmt.Println(q2.list)
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	cancel()
 
