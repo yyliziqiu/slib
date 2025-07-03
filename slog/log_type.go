@@ -14,17 +14,17 @@ const (
 type LevelDispatch map[string][]logrus.Level
 
 type Config struct {
-	Console        bool
-	Path           string
-	Name           string
-	Level          string
-	ShowCaller     bool
-	DataFormat     string
-	DateFormat     string
-	MaxAge         time.Duration
-	RotateTime     time.Duration
-	RotateLevel    int
-	RotateTimezone string
+	Console      bool
+	Path         string
+	Name         string
+	Level        string
+	Timezone     string
+	ShowCaller   bool
+	DataFormat   string
+	DateFormat   string
+	RotateMaxAge time.Duration
+	RotateTime   time.Duration
+	RotateLevel  int
 }
 
 func (c Config) Default() Config {
@@ -43,8 +43,8 @@ func (c Config) Default() Config {
 	if c.DateFormat == "" {
 		c.DateFormat = time.DateTime
 	}
-	if c.MaxAge == 0 {
-		c.MaxAge = 7 * 24 * time.Hour
+	if c.RotateMaxAge == 0 {
+		c.RotateMaxAge = 7 * 24 * time.Hour
 	}
 	if c.RotateTime == 0 {
 		c.RotateTime = 24 * time.Hour
@@ -52,8 +52,18 @@ func (c Config) Default() Config {
 	if c.RotateLevel == 0 {
 		c.RotateLevel = 2
 	}
-	if c.RotateTimezone == "" {
-		c.RotateTimezone = "Asia/Shanghai"
-	}
 	return c
+}
+
+func (c Config) Location() *time.Location {
+	if c.Timezone == "" {
+		return time.UTC
+	}
+
+	loc, err := time.LoadLocation(c.Timezone)
+	if err != nil {
+		return time.UTC
+	}
+
+	return loc
 }

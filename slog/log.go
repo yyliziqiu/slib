@@ -132,10 +132,10 @@ func newHook(conf Config) (*lfshook.LfsHook, error) {
 	var (
 		name = conf.Name
 		path = conf.Path
-		age  = conf.MaxAge
+		loc  = conf.Location()
+		rta  = conf.RotateMaxAge
 		rtt  = conf.RotateTime
 		rtl  = conf.RotateLevel
-		rtz  = conf.RotateTimezone
 	)
 
 	err := sfile.MakeDir(path)
@@ -149,9 +149,9 @@ func newHook(conf Config) (*lfshook.LfsHook, error) {
 
 	var output any
 	if rtl == 1 {
-		output, err = newRotateLogs(path, name, age, rtt, rtz)
+		output, err = newRotateLogs(path, name, loc, rta, rtt)
 	} else {
-		output, err = newWriterMap(path, name, age, rtt, rtl, rtz)
+		output, err = newWriterMap(path, name, loc, rta, rtt, rtl)
 	}
 	if err != nil {
 		return nil, err
@@ -160,26 +160,18 @@ func newHook(conf Config) (*lfshook.LfsHook, error) {
 	return lfshook.NewHook(output, newFormatter(conf)), nil
 }
 
-func newRotateLogs(dir string, name string, age time.Duration, rtt time.Duration, rtz string) (*rl.RotateLogs, error) {
-	path := filepath.Join(dir, name+"-%Y%m%d.log")
-
-	loc, err := time.LoadLocation(rtz)
-	if err != nil {
-		loc = time.UTC
-	}
-
-	rls, err := rl.New(path, rl.WithMaxAge(age), rl.WithRotationTime(rtt), rl.WithLocation(loc))
+func newRotateLogs(dir string, name string, loc *time.Location, rta time.Duration, rtt time.Duration) (*rl.RotateLogs, error) {
+	rls, err := rl.New(filepath.Join(dir, name+"-%Y%m%d.log"), rl.WithLocation(loc), rl.WithMaxAge(rta), rl.WithRotationTime(rtt))
 	if err != nil {
 		return nil, fmt.Errorf("new rotation failed [%v]", err)
 	}
-
 	return rls, nil
 }
 
-func newWriterMap(dir string, name string, age time.Duration, rtt time.Duration, rtl int, rtz string) (lfshook.WriterMap, error) {
+func newWriterMap(dir string, name string, loc *time.Location, rta time.Duration, rtt time.Duration, rtl int) (lfshook.WriterMap, error) {
 	wm := make(lfshook.WriterMap)
-	for prefix, levels := range levelDispatch(rtl, name) {
-		rls, err := newRotateLogs(dir, prefix, age, rtt, rtz)
+	for pfx, levels := range levelDispatch(rtl, name) {
+		rls, err := newRotateLogs(dir, pfx, loc, rta, rtt)
 		if err != nil {
 			return nil, err
 		}
