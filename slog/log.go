@@ -160,7 +160,7 @@ func newHook(conf Config) (*lfshook.LfsHook, error) {
 	return lfshook.NewHook(output, newFormatter(conf)), nil
 }
 
-func newRotateLogs(name string, dir string, age time.Duration, rtt time.Duration, rtz string) (*rotate.RotateLogs, error) {
+func newRotateLogs(dir string, name string, age time.Duration, rtt time.Duration, rtz string) (*rotate.RotateLogs, error) {
 	path := filepath.Join(dir, name+"-%Y%m%d.log")
 
 	loc, err := time.LoadLocation(rtz)
@@ -178,8 +178,8 @@ func newRotateLogs(name string, dir string, age time.Duration, rtt time.Duration
 
 func newWriterMap(dir string, name string, age time.Duration, rtt time.Duration, rtl int, rtz string) (lfshook.WriterMap, error) {
 	wm := make(lfshook.WriterMap)
-	for filename, levels := range levelDispatch(rtl, name) {
-		rls, err := newRotateLogs(filename, dir, age, rtt, rtz)
+	for prefix, levels := range levelDispatch(rtl, name) {
+		rls, err := newRotateLogs(dir, prefix, age, rtt, rtz)
 		if err != nil {
 			return nil, err
 		}
