@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	rotate "github.com/lestrrat/go-file-rotatelogs"
+	rl "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 
@@ -160,7 +160,7 @@ func newHook(conf Config) (*lfshook.LfsHook, error) {
 	return lfshook.NewHook(output, newFormatter(conf)), nil
 }
 
-func newRotateLogs(dir string, name string, age time.Duration, rtt time.Duration, rtz string) (*rotate.RotateLogs, error) {
+func newRotateLogs(dir string, name string, age time.Duration, rtt time.Duration, rtz string) (*rl.RotateLogs, error) {
 	path := filepath.Join(dir, name+"-%Y%m%d.log")
 
 	loc, err := time.LoadLocation(rtz)
@@ -168,7 +168,7 @@ func newRotateLogs(dir string, name string, age time.Duration, rtt time.Duration
 		loc = time.UTC
 	}
 
-	rls, err := rotate.New(path, rotate.WithMaxAge(age), rotate.WithRotationTime(rtt), rotate.WithLocation(loc))
+	rls, err := rl.New(path, rl.WithMaxAge(age), rl.WithRotationTime(rtt), rl.WithLocation(loc))
 	if err != nil {
 		return nil, fmt.Errorf("new rotation failed [%v]", err)
 	}
