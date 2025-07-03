@@ -7,13 +7,13 @@ import (
 	"github.com/yyliziqiu/slib/ssnap"
 )
 
-type Watcher struct {
+type SnapWatcher struct {
 	Queue *Queue
 	Item  any
 	Conf  ssnap.WatchConfig
 }
 
-func (w *Watcher) Save(exit bool) error {
+func (w *SnapWatcher) Save(exit bool) error {
 	if exit {
 		return w.Queue.Save()
 	}
@@ -23,18 +23,18 @@ func (w *Watcher) Save(exit bool) error {
 		return nil
 	}
 
-	return w.Queue.Duplicate(d*3 + time.Second)
+	return w.Queue.SnapDuplicate(d*3 + time.Second)
 }
 
-func (w *Watcher) Load() error {
+func (w *SnapWatcher) Load() error {
 	return w.Queue.Load(w.Item)
 }
 
-func (w *Watcher) WatchConfig() ssnap.WatchConfig {
+func (w *SnapWatcher) WatchConfig() ssnap.WatchConfig {
 	return w.Conf
 }
 
-type WatcherConfig struct {
+type SnapWatcherConfig struct {
 	Queue *Queue
 	Item  any
 	Path  string
@@ -42,7 +42,7 @@ type WatcherConfig struct {
 	Poll  time.Duration
 }
 
-func Watchers(configs ...WatcherConfig) []ssnap.Watcher {
+func SnapWatchers(configs ...SnapWatcherConfig) []ssnap.Watcher {
 	watchers := make([]ssnap.Watcher, 0, len(configs))
 	for _, config := range configs {
 		if config.Path != "" {
@@ -54,7 +54,7 @@ func Watchers(configs ...WatcherConfig) []ssnap.Watcher {
 		if config.Name == "" {
 			config.Name = filepath.Base(config.Queue.path)
 		}
-		watchers = append(watchers, &Watcher{
+		watchers = append(watchers, &SnapWatcher{
 			Queue: config.Queue,
 			Item:  config.Item,
 			Conf: ssnap.WatchConfig{

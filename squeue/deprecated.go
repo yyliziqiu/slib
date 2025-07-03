@@ -19,3 +19,13 @@ func (q *Queue) IsEmpty() bool {
 func (q *Queue) CopyItems() []any {
 	return q.CopyList()
 }
+
+// Save 保存快照
+func (q *Queue) Save() error {
+	return q.SnapSave()
+}
+
+// Load 加载快照
+func (q *Queue) Load(item any) error {
+	return q.SnapLoad(item)
+}

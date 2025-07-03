@@ -310,20 +310,20 @@ func TestWindow(t *testing.T) {
 }
 
 func TestSaveAndLoad(t *testing.T) {
-	_ = q3.Save()
+	_ = q3.SnapSave()
 
-	_ = q3.Load(1)
+	_ = q3.SnapLoad(1)
 
 	echo(q3.list)
 }
 
-func TestWatcher(t *testing.T) {
+func TestSnapWatcher(t *testing.T) {
 	slog.Default, _ = slog.New(slog.Config{Console: true})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	watchers := Watchers([]WatcherConfig{
+	watchers := SnapWatchers([]SnapWatcherConfig{
 		{
 			Queue: q1,
 			Item:  0,
