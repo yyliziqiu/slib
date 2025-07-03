@@ -90,7 +90,7 @@ type Filter func(item any) bool
 
 // Pops 从队列头开始弹出所有符合条件的元素，直到遇到第一个不符合条件的元素停止
 func (q *Queue) Pops(filter Filter) []any {
-	result := make([]any, 0, 4)
+	ret := make([]any, 0)
 
 	q.mu.Lock()
 	for q.head != q.tail {
@@ -99,13 +99,13 @@ func (q *Queue) Pops(filter Filter) []any {
 		if !ok {
 			break
 		}
-		result = append(result, item)
+		ret = append(ret, item)
 		q.list[q.head] = nil
 		q.head = q.headNext()
 	}
 	q.mu.Unlock()
 
-	return result
+	return ret
 }
 
 // SlideN 类似于滑动窗口，在队列尾添加一个元素，如果添加完元素队列长度大于 n，则删除前面的元素，最后只保留队列后 n 个元素
@@ -113,12 +113,15 @@ func (q *Queue) Pops(filter Filter) []any {
 // 第二个返回值表示是窗口否发生了滑动
 func (q *Queue) SlideN(item any, n int) (any, bool) {
 	q.mu.Lock()
+
 	q.push(item)
+
 	slide := false
 	for q.len() > n {
 		slide = true
 		item, _ = q.pop()
 	}
+
 	q.mu.Unlock()
 
 	if slide && q.debug {
@@ -136,11 +139,14 @@ type Remove func(item any) bool
 // 第二个返回值表示被删除的元素个数
 func (q *Queue) Slide(item any, remove Remove) (last any, n int) {
 	q.mu.Lock()
+
 	q.push(item)
+
 	for !q.empty() && remove(q.list[q.head]) {
 		n++
 		last, _ = q.pop()
 	}
+
 	q.mu.Unlock()
 
 	if n > 0 && q.debug {
@@ -168,45 +174,46 @@ func (q *Queue) Walk(f func(item any), reverse bool) {
 
 // Find 遍历队列，返回第一个符合条件的元素
 // reverse false：从头到尾遍历，true：从尾到头遍历
-func (q *Queue) Find(filter Filter, reverse bool) (any, int) {
+func (q *Queue) Find(filter Filter, reverse bool) (ret any, idx int) {
 	q.mu.RLock()
-	defer q.mu.RUnlock()
-
 	if reverse {
 		for i := q.tailPrev(); i != q.headPrev(); i = q.prev(i) {
 			if item := q.list[i]; filter(item) {
-				return item, i
+				ret, idx = item, i
+				break
 			}
 		}
 	} else {
 		for i := q.head; i != q.tail; i = q.next(i) {
 			if item := q.list[i]; filter(item) {
-				return item, i
+				ret, idx = item, i
+				break
 			}
-		}
-	}
-
-	return nil, 0
-}
-
-// FindAll 遍历队列，返回全部符合条件的元素
-func (q *Queue) FindAll(f Filter) []any {
-	all := make([]any, 0)
-
-	q.mu.RLock()
-	for i := q.head; i != q.tail; i = q.next(i) {
-		if item := q.list[i]; f(item) {
-			all = append(all, item)
 		}
 	}
 	q.mu.RUnlock()
 
-	return all
+	return
+}
+
+// FindAll 遍历队列，返回全部符合条件的元素
+func (q *Queue) FindAll(f Filter) []any {
+	ret := make([]any, 0)
+
+	q.mu.RLock()
+	for i := q.head; i != q.tail; i = q.next(i) {
+		if item := q.list[i]; f(item) {
+			ret = append(ret, item)
+		}
+	}
+	q.mu.RUnlock()
+
+	return ret
 }
 
 // TerminalN 获取队列前/后 n 个 item
 func (q *Queue) TerminalN(n int, reverse bool) []any {
-	items := make([]any, 0, n)
+	ret := make([]any, 0, n)
 
 	q.mu.RLock()
 
@@ -216,22 +223,22 @@ func (q *Queue) TerminalN(n int, reverse bool) []any {
 
 	if reverse {
 		for i, j := 0, q.tailPrev(); i < n && j != q.headPrev(); i, j = i+1, q.prev(j) {
-			items = append(items, q.list[j])
+			ret = append(ret, q.list[j])
 		}
 	} else {
 		for i, j := 0, q.head; i < n && j != q.tail; i, j = i+1, q.next(j) {
-			items = append(items, q.list[j])
+			ret = append(ret, q.list[j])
 		}
 	}
 
 	q.mu.RUnlock()
 
-	return items
+	return ret
 }
 
 // Terminal 获取队列前/后多个符合条件的 item，遇到第一个不符合条件的 item 停止遍历
 func (q *Queue) Terminal(filter Filter, reverse bool) []any {
-	items := make([]any, 0)
+	ret := make([]any, 0)
 
 	q.mu.RLock()
 	if reverse {
@@ -240,7 +247,7 @@ func (q *Queue) Terminal(filter Filter, reverse bool) []any {
 			if !filter(item) {
 				break
 			}
-			items = append(items, item)
+			ret = append(ret, item)
 		}
 	} else {
 		for i := q.head; i != q.tail; i = q.next(i) {
@@ -248,36 +255,36 @@ func (q *Queue) Terminal(filter Filter, reverse bool) []any {
 			if !filter(item) {
 				break
 			}
-			items = append(items, item)
+			ret = append(ret, item)
 		}
 	}
 	q.mu.RUnlock()
 
-	return items
+	return ret
 }
 
 // Window
 // 返回结果包含 bgn item，不包含 end item
 func (q *Queue) Window(bgn Filter, end Filter) []any {
-	start := false
-	result := make([]any, 0)
+	run := false
+	ret := make([]any, 0)
 
 	q.mu.RLock()
 	for i := q.head; i != q.tail; i = q.next(i) {
 		item := q.list[i]
-		if !start && bgn(item) {
-			start = true
+		if !run && bgn(item) {
+			run = true
 		}
-		if start && end(item) {
+		if run && end(item) {
 			break
 		}
-		if start {
-			result = append(result, item)
+		if run {
+			ret = append(ret, item)
 		}
 	}
 	q.mu.RUnlock()
 
-	return result
+	return ret
 }
 
 // Reset 重置队列
