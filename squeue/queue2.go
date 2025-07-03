@@ -113,15 +113,12 @@ func (q *Queue) Pops(filter Filter) []any {
 // 第二个返回值表示是窗口否发生了滑动
 func (q *Queue) SlideN(item any, n int) (any, bool) {
 	q.mu.Lock()
-
 	q.push(item)
-
 	slide := false
 	for q.len() > n {
 		slide = true
 		item, _ = q.pop()
 	}
-
 	q.mu.Unlock()
 
 	if slide && q.debug {
