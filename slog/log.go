@@ -21,8 +21,8 @@ var (
 	Console *logrus.Logger
 )
 
-func Init(config Config) (err error) {
-	_config = config.Default()
+func Init(conf Config) (err error) {
+	_config = conf.Default()
 
 	Default, err = New(_config)
 	if err != nil {
@@ -37,17 +37,17 @@ func Init(config Config) (err error) {
 	return nil
 }
 
-func New(config Config) (*logrus.Logger, error) {
-	if config.Console {
-		return newConsoleLogger(config)
+func New(conf Config) (*logrus.Logger, error) {
+	if conf.Console {
+		return newConsoleLogger(conf)
 	}
-	return newFileLogger(config)
+	return newFileLogger(conf)
 }
 
 func New2(name string) (*logrus.Logger, error) {
-	config := _config
-	config.Name = name
-	return New(config)
+	conf := _config
+	conf.Name = name
+	return New(conf)
 }
 
 func New3(name string) *logrus.Logger {
@@ -58,18 +58,18 @@ func New3(name string) *logrus.Logger {
 	return logger
 }
 
-func newConsoleLogger(config Config) (*logrus.Logger, error) {
+func newConsoleLogger(conf Config) (*logrus.Logger, error) {
 	// 创建日志
 	logger := logrus.New()
 
 	// 设置日志等级
-	logger.SetLevel(parseLevel(config.Level))
+	logger.SetLevel(parseLevel(conf.Level))
 
 	// 设置日志格式
-	logger.SetFormatter(newFormatter(config))
+	logger.SetFormatter(newFormatter(conf))
 
 	// 禁止输出方法名
-	logger.SetReportCaller(config.ShowCaller)
+	logger.SetReportCaller(conf.ShowCaller)
 
 	return logger, nil
 }
@@ -82,10 +82,10 @@ func parseLevel(name string) logrus.Level {
 	return level
 }
 
-func newFormatter(config Config) logrus.Formatter {
+func newFormatter(conf Config) logrus.Formatter {
 	var (
-		dataFormat = config.DataFormat
-		dateFormat = config.DateFormat
+		dataFormat = conf.DataFormat
+		dateFormat = conf.DateFormat
 	)
 
 	if dateFormat == "" {
@@ -105,7 +105,7 @@ func newFormatter(config Config) logrus.Formatter {
 	}
 }
 
-func newFileLogger(config Config) (*logrus.Logger, error) {
+func newFileLogger(conf Config) (*logrus.Logger, error) {
 	// 创建日志
 	logger := logrus.New()
 
@@ -113,13 +113,13 @@ func newFileLogger(config Config) (*logrus.Logger, error) {
 	logger.SetOutput(io.Discard)
 
 	// 设置日志等级
-	logger.SetLevel(parseLevel(config.Level))
+	logger.SetLevel(parseLevel(conf.Level))
 
 	// 禁止输出方法名
-	logger.SetReportCaller(config.ShowCaller)
+	logger.SetReportCaller(conf.ShowCaller)
 
 	// 日志按天分割
-	hook, err := newHook(config)
+	hook, err := newHook(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -128,52 +128,58 @@ func newFileLogger(config Config) (*logrus.Logger, error) {
 	return logger, nil
 }
 
-func newHook(config Config) (*lfshook.LfsHook, error) {
+func newHook(conf Config) (*lfshook.LfsHook, error) {
 	var (
-		name = config.Name
-		path = config.Path
-		age  = config.MaxAge
-		rtt  = config.RotationTime
-		rtl  = config.RotationLevel
+		name = conf.Name
+		path = conf.Path
+		age  = conf.MaxAge
+		rtt  = conf.RotateTime
+		rtl  = conf.RotateLevel
+		rtz  = conf.RotateTimezone
 	)
 
-	// 确保日志目录存在
 	err := sfile.MakeDir(path)
 	if err != nil {
 		return nil, fmt.Errorf("make log dir failed [%v]", err)
 	}
 
-	// 美化日志文件名
 	if strings.HasSuffix(name, "-") {
 		name = strings.TrimSuffix(name, "-")
 	}
 
-	// 生成 output
 	var output any
 	if rtl == 1 {
-		output, err = newRotation(path, name, age, rtt)
+		output, err = newRotation(path, name, age, rtt, rtz)
 	} else {
-		output, err = newOutput(newDispatch(name, rtl), path, age, rtt)
+		output, err = newOutput(path, name, age, rtt, rtl, rtz)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return lfshook.NewHook(output, newFormatter(config)), nil
+	return lfshook.NewHook(output, newFormatter(conf)), nil
 }
 
-func newRotation(name string, dir string, age time.Duration, rtt time.Duration) (*rotate.RotateLogs, error) {
-	rt, err := rotate.New(filepath.Join(dir, name+"-%Y%m%d.log"), rotate.WithMaxAge(age), rotate.WithRotationTime(rtt))
+func newRotation(name string, dir string, age time.Duration, rtt time.Duration, rtz string) (*rotate.RotateLogs, error) {
+	path := filepath.Join(dir, name+"-%Y%m%d.log")
+
+	loc, err := time.LoadLocation(rtz)
+	if err != nil {
+		loc = time.UTC
+	}
+
+	rt, err := rotate.New(path, rotate.WithMaxAge(age), rotate.WithRotationTime(rtt), rotate.WithLocation(loc))
 	if err != nil {
 		return nil, fmt.Errorf("new rotation failed [%v]", err)
 	}
+
 	return rt, nil
 }
 
-func newOutput(dispatch Dispatch, dir string, age time.Duration, rtt time.Duration) (lfshook.WriterMap, error) {
+func newOutput(dir string, name string, age time.Duration, rtt time.Duration, rtl int, rtz string) (lfshook.WriterMap, error) {
 	output := lfshook.WriterMap{}
-	for name, levels := range dispatch {
-		rt, err := newRotation(name, dir, age, rtt)
+	for filename, levels := range levelDispatch(rtl, name) {
+		rt, err := newRotation(filename, dir, age, rtt, rtz)
 		if err != nil {
 			return nil, err
 		}
@@ -184,33 +190,30 @@ func newOutput(dispatch Dispatch, dir string, age time.Duration, rtt time.Durati
 	return output, nil
 }
 
-func newDispatch(name string, rtl int) Dispatch {
-	var (
-		dispatch         Dispatch
-		d, i, w, e, f, p logrus.Level = 5, 4, 3, 2, 1, 0
-	)
+func levelDispatch(rtl int, name string) (dispatch LevelDispatch) {
+	var d, i, w, e, f, p logrus.Level = 5, 4, 3, 2, 1, 0
 
 	switch rtl {
 	case 3:
-		dispatch = Dispatch{
+		dispatch = LevelDispatch{
 			name:            {d, i},
 			name + "-warn":  {w},
 			name + "-error": {e, f, p},
 		}
 	case 4:
-		dispatch = Dispatch{
+		dispatch = LevelDispatch{
 			name + "-debug": {d},
 			name + "-info":  {i},
 			name + "-warn":  {w},
 			name + "-error": {e, f, p},
 		}
 	case 5:
-		dispatch = Dispatch{
+		dispatch = LevelDispatch{
 			name:            {d, i},
 			name + "-error": {w, e, f, p},
 		}
 	default:
-		dispatch = Dispatch{
+		dispatch = LevelDispatch{
 			name:            {d, i, w},
 			name + "-error": {e, f, p},
 		}
