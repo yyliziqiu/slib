@@ -149,9 +149,9 @@ func newHook(conf Config) (*lfshook.LfsHook, error) {
 
 	var output any
 	if rtl == 1 {
-		output, err = newRotation(path, name, age, rtt, rtz)
+		output, err = newRotateLogs(path, name, age, rtt, rtz)
 	} else {
-		output, err = newOutput(path, name, age, rtt, rtl, rtz)
+		output, err = newWriterMap(path, name, age, rtt, rtl, rtz)
 	}
 	if err != nil {
 		return nil, err
@@ -160,7 +160,7 @@ func newHook(conf Config) (*lfshook.LfsHook, error) {
 	return lfshook.NewHook(output, newFormatter(conf)), nil
 }
 
-func newRotation(name string, dir string, age time.Duration, rtt time.Duration, rtz string) (*rotate.RotateLogs, error) {
+func newRotateLogs(name string, dir string, age time.Duration, rtt time.Duration, rtz string) (*rotate.RotateLogs, error) {
 	path := filepath.Join(dir, name+"-%Y%m%d.log")
 
 	loc, err := time.LoadLocation(rtz)
@@ -168,26 +168,26 @@ func newRotation(name string, dir string, age time.Duration, rtt time.Duration, 
 		loc = time.UTC
 	}
 
-	rt, err := rotate.New(path, rotate.WithMaxAge(age), rotate.WithRotationTime(rtt), rotate.WithLocation(loc))
+	rls, err := rotate.New(path, rotate.WithMaxAge(age), rotate.WithRotationTime(rtt), rotate.WithLocation(loc))
 	if err != nil {
 		return nil, fmt.Errorf("new rotation failed [%v]", err)
 	}
 
-	return rt, nil
+	return rls, nil
 }
 
-func newOutput(dir string, name string, age time.Duration, rtt time.Duration, rtl int, rtz string) (lfshook.WriterMap, error) {
-	output := lfshook.WriterMap{}
+func newWriterMap(dir string, name string, age time.Duration, rtt time.Duration, rtl int, rtz string) (lfshook.WriterMap, error) {
+	wm := make(lfshook.WriterMap)
 	for filename, levels := range levelDispatch(rtl, name) {
-		rt, err := newRotation(filename, dir, age, rtt, rtz)
+		rls, err := newRotateLogs(filename, dir, age, rtt, rtz)
 		if err != nil {
 			return nil, err
 		}
 		for _, level := range levels {
-			output[level] = rt
+			wm[level] = rls
 		}
 	}
-	return output, nil
+	return wm, nil
 }
 
 func levelDispatch(rtl int, name string) (dispatch LevelDispatch) {
