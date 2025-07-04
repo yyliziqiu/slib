@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"strings"
 	"time"
 
 	rl "github.com/lestrrat-go/file-rotatelogs"
@@ -130,28 +129,24 @@ func newFileLogger(conf Config) (*logrus.Logger, error) {
 
 func newHook(conf Config) (*lfshook.LfsHook, error) {
 	var (
-		name = conf.Name
-		path = conf.Path
-		loc  = conf.Location()
-		rta  = conf.RotateMaxAge
-		rtt  = conf.RotateTime
-		rtl  = conf.RotateLevel
+		dir = conf.Path
+		pfx = conf.Name
+		loc = conf.Location()
+		rta = conf.RotateMaxAge
+		rtt = conf.RotateTime
+		rtl = conf.RotateLevel
 	)
 
-	err := sfile.MakeDir(path)
+	err := sfile.MakeDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("make log dir failed [%v]", err)
 	}
 
-	if strings.HasSuffix(name, "-") {
-		name = strings.TrimSuffix(name, "-")
-	}
-
 	var output any
 	if rtl == 1 {
-		output, err = newRotateLogs(path, name, loc, rta, rtt)
+		output, err = newRotateLogs(dir, pfx, loc, rta, rtt)
 	} else {
-		output, err = newWriterMap(path, name, loc, rta, rtt, rtl)
+		output, err = newWriterMap(dir, pfx, loc, rta, rtt, rtl)
 	}
 	if err != nil {
 		return nil, err
@@ -160,18 +155,18 @@ func newHook(conf Config) (*lfshook.LfsHook, error) {
 	return lfshook.NewHook(output, newFormatter(conf)), nil
 }
 
-func newRotateLogs(dir string, name string, loc *time.Location, rta time.Duration, rtt time.Duration) (*rl.RotateLogs, error) {
-	rls, err := rl.New(filepath.Join(dir, name+"-%Y%m%d.log"), rl.WithLocation(loc), rl.WithMaxAge(rta), rl.WithRotationTime(rtt))
+func newRotateLogs(dir string, pfx string, _ *time.Location, rta time.Duration, rtt time.Duration) (*rl.RotateLogs, error) {
+	rls, err := rl.New(filepath.Join(dir, pfx+"-%Y%m%d.log"), rl.WithMaxAge(rta), rl.WithRotationTime(rtt))
 	if err != nil {
 		return nil, fmt.Errorf("new rotation failed [%v]", err)
 	}
 	return rls, nil
 }
 
-func newWriterMap(dir string, name string, loc *time.Location, rta time.Duration, rtt time.Duration, rtl int) (lfshook.WriterMap, error) {
+func newWriterMap(dir string, pfx string, loc *time.Location, rta time.Duration, rtt time.Duration, rtl int) (lfshook.WriterMap, error) {
 	wm := make(lfshook.WriterMap)
-	for pfx, levels := range levelDispatch(rtl, name) {
-		rls, err := newRotateLogs(dir, pfx, loc, rta, rtt)
+	for pf2, levels := range levelDispatch(rtl, pfx) {
+		rls, err := newRotateLogs(dir, pf2, loc, rta, rtt)
 		if err != nil {
 			return nil, err
 		}
@@ -182,32 +177,32 @@ func newWriterMap(dir string, name string, loc *time.Location, rta time.Duration
 	return wm, nil
 }
 
-func levelDispatch(rtl int, name string) (dispatch LevelDispatch) {
+func levelDispatch(rtl int, pfx string) (dispatch LevelDispatch) {
 	var d, i, w, e, f, p logrus.Level = 5, 4, 3, 2, 1, 0
 
 	switch rtl {
 	case 3:
 		dispatch = LevelDispatch{
-			name:            {d, i},
-			name + "-warn":  {w},
-			name + "-error": {e, f, p},
+			pfx:            {d, i},
+			pfx + "-warn":  {w},
+			pfx + "-error": {e, f, p},
 		}
 	case 4:
 		dispatch = LevelDispatch{
-			name + "-debug": {d},
-			name + "-info":  {i},
-			name + "-warn":  {w},
-			name + "-error": {e, f, p},
+			pfx + "-debug": {d},
+			pfx + "-info":  {i},
+			pfx + "-warn":  {w},
+			pfx + "-error": {e, f, p},
 		}
 	case 5:
 		dispatch = LevelDispatch{
-			name:            {d, i},
-			name + "-error": {w, e, f, p},
+			pfx:            {d, i},
+			pfx + "-error": {w, e, f, p},
 		}
 	default:
 		dispatch = LevelDispatch{
-			name:            {d, i, w},
-			name + "-error": {e, f, p},
+			pfx:            {d, i, w},
+			pfx + "-error": {e, f, p},
 		}
 	}
 

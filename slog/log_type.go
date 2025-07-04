@@ -1,6 +1,7 @@
 package slog
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -57,12 +58,13 @@ func (c Config) Default() Config {
 
 func (c Config) Location() *time.Location {
 	if c.Timezone == "" {
-		return time.UTC
+		return time.Local
 	}
 
 	loc, err := time.LoadLocation(c.Timezone)
 	if err != nil {
-		return time.UTC
+		fmt.Printf("Parse timezone failed when init log, error: %v.\n", err)
+		return time.Local
 	}
 
 	return loc
