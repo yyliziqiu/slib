@@ -1,4 +1,4 @@
-package squeue
+package sq
 
 import (
 	"path/filepath"
