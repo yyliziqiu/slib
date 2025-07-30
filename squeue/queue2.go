@@ -108,6 +108,21 @@ func (q *Queue) Pops(filter Filter) []any {
 	return ret
 }
 
+// Pops2 从队列头开始弹出所有符合条件的元素，直到遇到第一个不符合条件的元素停止
+func (q *Queue) Pops2(filter Filter) {
+	q.mu.Lock()
+	for q.head != q.tail {
+		item := q.list[q.head]
+		ok := filter(item)
+		if !ok {
+			break
+		}
+		q.list[q.head] = nil
+		q.head = q.headNext()
+	}
+	q.mu.Unlock()
+}
+
 // SlideN 类似于滑动窗口，在队列尾添加一个元素，如果添加完元素队列长度大于 n，则删除前面的元素，最后只保留队列后 n 个元素
 // 第一个返回值表示最后一个删除的元素
 // 第二个返回值表示是窗口否发生了滑动
