@@ -1,52 +1,79 @@
 package uid
 
 import (
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/yyliziqiu/slib/slog"
+	"github.com/yyliziqiu/slib/ssnap"
 )
 
 type Uid struct {
 	node string
 	seed Seed
+	snap *ssnap.Snap
 	mu   sync.Mutex
 }
 
 func New(node int) *Uid {
-	t := &Uid{}
-	t.node = t.hex(int64(node), 2)
+	return New2(node, "")
+}
+
+func New2(node int, path string) *Uid {
+	t := &Uid{
+		node: hex(int64(node), 2),
+	}
+	if path == "" {
+		t.snap = ssnap.New(path, &t.seed)
+	}
+
 	return t
+}
+
+func (t *Uid) Save(_ bool) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	return t.snap.Save()
+}
+
+func (t *Uid) Load() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	return t.snap.Load()
 }
 
 // Get 返回十六位唯一 ID
 func (t *Uid) Get() string {
+	id, err := t.GetOrFail()
+	if err != nil {
+		slog.Error("[Uuid.Get] Time back forward.")
+	}
+	return id
+}
+
+// GetOrFail 返回十六位唯一 ID
+func (t *Uid) GetOrFail() (string, error) {
 	t.mu.Lock()
-	defer t.mu.Unlock()
 
 	nano := time.Now().UnixNano()
 	curr := nano / 1e9
 	if curr < t.seed.A {
-		slog.Error("[Uuid.Get] Time back forward.")
+		t.mu.Unlock()
+		return "", ErrTimeBackForward
 	}
+
 	if curr > t.seed.A {
 		t.seed.A = curr
-		t.seed.B = t.hex(curr, 8)
+		t.seed.B = hex(curr, 8)
 		t.seed.C = (nano % 1e7) + 1048576 // 1048576 = 0x100000, 确保C转化为16进制后为6位数，且有一定的增长空间
 	}
-
 	t.seed.C++
 
-	id := t.seed.B + t.node + t.hex(t.seed.C, 6)
+	id := t.seed.B + t.node + hex(t.seed.C, 6)
 
-	return id
-}
+	t.mu.Unlock()
 
-func (t *Uid) hex(n int64, l int) string {
-	s := strconv.FormatInt(n, 16)
-	if len(s) < l {
-		s = _padding[l-len(s)] + s
-	}
-	return s
+	return id, nil
 }
