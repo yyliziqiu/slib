@@ -1,4 +1,4 @@
-package uid
+package suid
 
 import (
 	"sync"
