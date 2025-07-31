@@ -1,6 +1,7 @@
 package uid
 
 import (
+	"math"
 	"sync"
 	"testing"
 
@@ -20,7 +21,13 @@ func TestGetOrFail(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		for i := 0; i < 1000000; i++ {
-			_, _ = GetOrFail()
+			if i == 999999 {
+				_uid.seed.A = math.MaxInt32
+			}
+			_, err := GetOrFail()
+			if err != nil {
+				t.Log(err)
+			}
 		}
 	}()
 
