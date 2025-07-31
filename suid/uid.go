@@ -50,11 +50,3 @@ func (t *Uid) hex(n int64, l int) string {
 	}
 	return s
 }
-
-func (t *Uid) GetSeed() Seed {
-	return t.seed
-}
-
-func (t *Uid) SetSeed(seed Seed) {
-	t.seed = seed
-}

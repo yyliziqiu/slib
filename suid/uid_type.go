@@ -16,11 +16,3 @@ var _uid = New(1)
 func Get() string {
 	return _uid.Get()
 }
-
-func GetSeed() Seed {
-	return _uid.seed
-}
-
-func SetSeed(seed Seed) {
-	_uid.seed = seed
-}
