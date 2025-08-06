@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestPercentBalancer(t *testing.T) {
+func TestProportion(t *testing.T) {
 	r := NewProportion(34)
 
 	a, c := 0, 5235252
