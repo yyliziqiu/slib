@@ -6,11 +6,11 @@ import (
 )
 
 func TestPercentBalancer(t *testing.T) {
-	r := NewPercentBalancer(34)
+	r := NewProportion(34)
 
 	a, c := 0, 5235252
 	for i := 0; i < c; i++ {
-		ok := r.Take()
+		ok := r.Next()
 		if ok {
 			a++
 		}
