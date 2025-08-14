@@ -17,8 +17,8 @@ var (
 	_logger2 *logrus.Logger // 记录访问日志
 )
 
-func Run(config Config, routes ...func(engine *gin.Engine)) error {
-	config = config.Default()
+func Run(conf Config, routes ...func(engine *gin.Engine)) (err error) {
+	conf = conf.Default()
 
 	// gin 全局设置
 	gin.SetMode(gin.ReleaseMode)
@@ -29,7 +29,7 @@ func Run(config Config, routes ...func(engine *gin.Engine)) error {
 
 	// 访问日志设置
 	gin.DefaultWriter = io.Discard
-	if !config.DisableAccessLog {
+	if !conf.DisableAccessLog {
 		gin.DefaultWriter = logger2().Writer()
 	}
 
@@ -50,7 +50,15 @@ func Run(config Config, routes ...func(engine *gin.Engine)) error {
 		v(engine)
 	}
 
-	return engine.Run(config.Listen)
+	if conf.Tls {
+		// https
+		err = engine.RunTLS(conf.Listen, conf.CertFile, conf.KeyFile)
+	} else {
+		// http
+		err = engine.Run(conf.Listen)
+	}
+
+	return err
 }
 
 func logger1() *logrus.Logger {

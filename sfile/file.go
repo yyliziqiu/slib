@@ -1,6 +1,7 @@
 package sfile
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -18,12 +19,14 @@ func Exist(path string) (bool, error) {
 
 // MakeDir 创建目录，如果目录已存在则不做任何操作
 func MakeDir(path string) error {
-	exist, err := Exist(path)
+	stat, err := os.Stat(path)
 	if err != nil {
-		return err
+		if !os.IsNotExist(err) {
+			return err
+		}
 	}
-	if exist {
-		return nil
+	if !stat.IsDir() {
+		return fmt.Errorf("%s is not a directory", path)
 	}
 	return os.MkdirAll(path, 0755)
 }
