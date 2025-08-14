@@ -20,13 +20,14 @@ func Exist(path string) (bool, error) {
 // MakeDir 创建目录，如果目录已存在则不做任何操作
 func MakeDir(path string) error {
 	stat, err := os.Stat(path)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
+	if err == nil {
+		if !stat.IsDir() {
+			return fmt.Errorf("%s is not a directory", path)
 		}
+		return nil
 	}
-	if !stat.IsDir() {
-		return fmt.Errorf("%s is not a directory", path)
+	if !os.IsNotExist(err) {
+		return err
 	}
 	return os.MkdirAll(path, 0755)
 }
