@@ -6,6 +6,11 @@ import (
 	"sync/atomic"
 )
 
+var (
+	ErrNoValidRoundRobinNode = errors.New("no valid round robin node")
+)
+
+// RrValue interface
 type RrValue interface {
 	GetWeight() int
 }
@@ -94,7 +99,7 @@ func (t *Rr) swrrNext() (any, error) {
 
 	// 无有效节点
 	if target == nil {
-		return nil, errors.New("no valid node")
+		return nil, ErrNoValidRoundRobinNode
 	}
 
 	// 将选中节点的状态值减去所有节点的权重总和
@@ -106,7 +111,7 @@ func (t *Rr) swrrNext() (any, error) {
 // 循环逐个遍历
 func (t *Rr) incrNext() (any, error) {
 	if t.len == 0 {
-		return nil, errors.New("no valid node")
+		return nil, ErrNoValidRoundRobinNode
 	}
 
 	i := atomic.AddInt32(&t.seq, 1) & 0x7FFFFFFF
