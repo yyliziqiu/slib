@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-func TestProportion(t *testing.T) {
-	r := NewProportion(34)
+func TestRtp(t *testing.T) {
+	r := NewRtp(34)
 
 	a, c := 0, 5235252
 	for i := 0; i < c; i++ {
-		ok := r.Next()
+		ok := r.Do()
 		if ok {
 			a++
 		}
