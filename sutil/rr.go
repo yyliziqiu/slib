@@ -96,7 +96,7 @@ func (t *Rr) nextBySwrr() any {
 // 循环逐个遍历
 func (t *Rr) nextByIncr() any {
 	if t.len == 0 {
-		return 0
+		return nil
 	}
 
 	i := atomic.AddInt32(&t.seq, 1) & 0x7FFFFFFF
