@@ -1,4 +1,4 @@
-package sq2
+package scq2
 
 import (
 	"errors"

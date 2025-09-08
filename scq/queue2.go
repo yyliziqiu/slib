@@ -1,4 +1,4 @@
-package sq
+package scq
 
 // EnableDebug 开启 debug 模式，该模式下会输出队列的操作日志
 func (q *Queue) EnableDebug() *Queue {
