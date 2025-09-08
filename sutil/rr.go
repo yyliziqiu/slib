@@ -1,9 +1,14 @@
 package sutil
 
 import (
+	"errors"
 	"sync"
 	"sync/atomic"
 )
+
+type RrValue interface {
+	GetWeight() int
+}
 
 // Rr Round Robin
 type Rr struct {
@@ -21,19 +26,23 @@ type rrNode struct {
 	status int // 状态值
 }
 
-type RrNode interface {
-	GetWeight() int
-}
-
 // NewRr 创建轮询器
 func NewRr() *Rr {
 	return &Rr{list: make([]*rrNode, 0, 3)}
 }
 
-func (t *Rr) AddNodes(nodes []RrNode) {
+// NewRr2 创建轮询器
+func NewRr2(values []RrValue) *Rr {
+	rr := NewRr()
+	rr.AddNodes(values)
+	return rr
+}
+
+// AddNodes 一次添加多个节点
+func (t *Rr) AddNodes(values []RrValue) {
 	t.mu.Lock()
-	for _, node := range nodes {
-		t.add(node, node.GetWeight())
+	for _, v := range values {
+		t.add(v, v.GetWeight())
 	}
 	t.mu.Unlock()
 }
@@ -60,19 +69,19 @@ func (t *Rr) add(value any, weight int) {
 }
 
 // Next 轮询
-func (t *Rr) Next() (v any) {
+func (t *Rr) Next() (v any, err error) {
 	if t.swrr {
 		t.mu.Lock()
-		v = t.nextBySwrr()
+		v, err = t.swrrNext()
 		t.mu.Unlock()
 	} else {
-		v = t.nextByIncr()
+		v, err = t.incrNext()
 	}
 	return
 }
 
 // 平滑加权轮询
-func (t *Rr) nextBySwrr() any {
+func (t *Rr) swrrNext() (any, error) {
 	var target *rrNode
 
 	// 将所有节点的状态值加上该节点权重，并选出状态值最大的节点
@@ -83,23 +92,30 @@ func (t *Rr) nextBySwrr() any {
 		}
 	}
 
+	// 无有效节点
 	if target == nil {
-		return nil
+		return nil, errors.New("no valid node")
 	}
 
 	// 将选中节点的状态值减去所有节点的权重总和
 	target.status -= t.sum
 
-	return target.value
+	return target.value, nil
 }
 
 // 循环逐个遍历
-func (t *Rr) nextByIncr() any {
+func (t *Rr) incrNext() (any, error) {
 	if t.len == 0 {
-		return nil
+		return nil, errors.New("no valid node")
 	}
 
 	i := atomic.AddInt32(&t.seq, 1) & 0x7FFFFFFF
 
-	return t.list[int(i)%t.len].value
+	return t.list[int(i)%t.len].value, nil
+}
+
+// MustNext 轮询
+func (t *Rr) MustNext() any {
+	v, _ := t.Next()
+	return v
 }

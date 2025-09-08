@@ -13,7 +13,7 @@ func TestRoundRobin(t *testing.T) {
 	m.add(3, 3)
 
 	for i := 0; i < 30; i++ {
-		fmt.Print(m.Next(), " ")
+		fmt.Print(m.MustNext(), " ")
 	}
 
 	fmt.Println()
