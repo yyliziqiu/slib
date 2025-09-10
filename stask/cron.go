@@ -23,11 +23,12 @@ func (t CronTask) slug() string {
 	return sreflect.FuncName(t.Func)
 }
 
-func RunCronTasks(ctx context.Context, loc *time.Location, tasks []CronTask) {
-	runner := cron.New(
-		cron.WithSeconds(),
-		cron.WithLocation(location(loc)),
-	)
+func RunCronTasks(ctx context.Context, tasks []CronTask, loc *time.Location) {
+	if loc == nil {
+		loc = time.Local
+	}
+
+	runner := cron.New(cron.WithSeconds(), cron.WithLocation(loc))
 
 	for _, task := range tasks {
 		if task.Spec == "" {
@@ -49,19 +50,7 @@ func RunCronTasks(ctx context.Context, loc *time.Location, tasks []CronTask) {
 	slog.Info("Cron task exit.")
 }
 
-func location(loc *time.Location) *time.Location {
-	if loc != nil {
-		return loc
-	}
-	loc, err := time.LoadLocation("Asia/Shanghai")
-	if err != nil {
-		slog.Errorf("Load locatioin failed, error: %v.", err)
-		return time.UTC
-	}
-	return loc
-}
-
-func RunCronTasksWithConfig(ctx context.Context, loc *time.Location, tasks []CronTask, configs []CronTask) {
+func RunCronTasksWithConfig(ctx context.Context, tasks []CronTask, configs []CronTask, loc *time.Location) {
 	index := make(map[string]CronTask)
 	for _, config := range configs {
 		index[config.slug()] = config
@@ -74,5 +63,5 @@ func RunCronTasksWithConfig(ctx context.Context, loc *time.Location, tasks []Cro
 		}
 	}
 
-	RunCronTasks(ctx, loc, tasks)
+	RunCronTasks(ctx, tasks, loc)
 }
