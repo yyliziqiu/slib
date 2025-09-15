@@ -6,14 +6,16 @@ import (
 )
 
 func TestNext(t *testing.T) {
-	m := NewNext()
+	m := NewRoundRobin()
 
-	m.add(1, 1)
-	m.add(2, 2)
-	m.add(3, 3)
+	m.Add(1, 1)
+	m.Add(2, 2)
+	m.Add(3, 3)
+
+	fmt.Println(m.swrr)
 
 	for i := 0; i < 30; i++ {
-		fmt.Print(m.MustDo(), " ")
+		fmt.Print(m.MustNext(), " ")
 	}
 
 	fmt.Println()
