@@ -6,11 +6,11 @@ import (
 )
 
 func TestRtp(t *testing.T) {
-	r := NewRtp(34)
+	r := NewPercentBalancer(34)
 
 	a, c := 0, 5235252
 	for i := 0; i < c; i++ {
-		ok := r.Do()
+		ok := r.Next()
 		if ok {
 			a++
 		}
